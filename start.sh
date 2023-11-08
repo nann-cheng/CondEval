@@ -1,0 +1,1 @@
+python3 server.py 0 && python3 server.py 1 && python3 client.py && python3 bank.py

@@ -1,0 +1,4 @@
+MY_CFLAGS += -I./local/include
+MY_LDLIBS += -Wl,-rpath -Wl,/home/crypto/Desktop/MP-SPDZ/local/lib -L/home/crypto/Desktop/MP-SPDZ/local/lib
+MY_CFLAGS = -DINSECURE
+MOD = -DRING_SIZE=112

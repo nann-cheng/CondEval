@@ -1,0 +1,44 @@
+#import mpc_math
+
+program.use_square(True)
+#program.use_edabit(True)
+#program.set_bit_length(32)
+
+# Define the fixed-point format with scaling factor 2^7
+sfix.set_precision(7, 57)
+cfix.set_precision(7, 57)
+
+VEC_LEN = 192
+
+# set value which is equal to 1/t^2
+sigma = cfix(8.796174860215586)
+zero = cfix(0)
+
+# 1th round: input relevant vectors
+x = Array(VEC_LEN, sfix) #reference template
+y = Array(VEC_LEN, sfix) #online template for authentication
+for i in range(VEC_LEN):
+    x[i] = sfix.get_input_from(0)
+    y[i] = sfix.get_input_from(1)
+    #if i == 0:
+    #    print_ln("left value is: %s, %s", x[i].reveal(),y[i].reveal())
+
+# The actual cosine similarity functionality, (Note: the compiler will decide on the actual final communication rounds required)
+numerator = x[0]*y[0]
+denominator0 = x[0]*x[0]
+denominator1 = y[0]*y[0]
+
+for i in range(1,VEC_LEN):
+    numerator += x[i]*y[i]
+    denominator0 += x[i]*x[i]
+    denominator1 += y[i]*y[i]
+
+left = numerator*numerator*sigma
+right = denominator0*denominator1
+
+c1 = (numerator > zero)
+c2 = (left >= right)
+
+c = c1*c2
+print_ln("comparison result is: %s", c.reveal())
+#print_ln("left value is: %s", left.reveal())

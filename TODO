@@ -1,0 +1,27 @@
+# Explore the meaning of malicious ot?
+<!-- Does it worth using optimized FSS? Does the proof holds? -->
+
+<!-- Use ic with one key-Gen but two invocations -->
+
+<!-- Put those unit tests within new constructed class/structures -->
+
+<!-- Why it doesn't show zero but all 2*beta? Due to an internal error -->
+
+<!-- Erros made that not differentiating input bits length and output length -->
+
+Simulate network delay, how?
+
+Does cw reducing save quite a lot communication volume? Not that much, packing is quite costing, should be optimized.!!
+
+Is it because the seed expanding algorithm the bottleneck for python fss evaluation? Needs to verify.
+
+Fix the FSS_KEY_LENGTH problem
+
+<!-- for c1 computation k0,k1 length:
+v2Bin len is:  629
+v3Bin len is:  629 -->
+
+<!-- for c2 computation k0,k1 length:
+bin len is:  752
+v3Bin len is:  629 -->
+

@@ -1,0 +1,126 @@
+Steps:
+
+-1) For linux distribution, run pre-requirements below:
+
+sudo apt-get install automake build-essential clang cmake git libboost-dev libboost-thread-dev libntl-dev libsodium-dev libssl-dev libtool m4 python3 texinfo yasm
+
+make -j8 mpir
+
+0) change CONFIG.mine, adapt it to insecure offline generation and specify ring size used in virtual machine
+
+MY_CFLAGS = -DINSECURE
+MOD = -DRING_SIZE=112 (If 112 is required)
+
+then make all binary executables.
+
+make boost
+make -j8 Fake-Offline.x spdz2k-party.x
+
+
+1) prepare tasks, in which specifying parameters, \ie computation modulo ring 112.
+Specify truncation parameter, float number representation length in
+
+eg., for fix integer of length 64, where there are 7 bits of decimal part
+
+sfix.set_precision(7, 57)
+cfix.set_precision(7, 57)
+
+./compile.py abio -R 64 (64+48)
+
+2) Prepare offline insecure data generation
+
+{
+	Online-only benchmarkingls
+
+	./Fake-Offline.x <nparties> -Z <bit length k for SPDZ2k> -S <security parameter>
+
+	For SPDZ2k, use -Z <k> to set the computation domain to Z_{2^k}, and -S to set the security parameter. The latter defaults to k. At the time of writing, the following combinations are available: 32/32, 64/64, 64/48, and 66/48.
+
+}
+./Fake-Offline.x 2 -Z 64 -S 48
+
+3) Online only benchmarking
+
+
+sudo ip netns exec WAN ./spdz2k-party.x -h 10.0.0.2 -p 0 -N 2 -F -R 64 -SP 48 -v abio
+./spdz2k-party.x -h 10.0.0.1 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+(proxy client message from 10.0.0.1:5000 to 10.0.0.2:5000)
+socat -v TCP-LISTEN:5000,bind=10.0.0.1,fork,reuseaddr TCP:10.0.0.2:5000
+socat -v TCP-LISTEN:5001,bind=10.0.0.1,fork,reuseaddr TCP:127.0.0.1:5001
+
+
+
+
+./spdz2k-party.x -h 10.0.0.1 -p 0 -N 2 -F -R 64 -SP 48 -v abio
+
+sudo ip netns exec WAN ./spdz2k-party.x -h 10.0.0.1 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+./spdz2k-party.x -h 10.0.0.1 -N 2 -F -R 64 -SP 48 -v 0 abio
+sudo ip netns exec WAN ./spdz2k-party.x -h 10.0.0.1 -N 2 -F -R 64 -SP 48 -v 1 abio
+
+
+
+
+
+
+sudo ip netns exec WAN0 ./spdz2k-party.x --ip-file-name ipFile.txt -p 0 -N 2 -F -R 64 -SP 48 -v abio
+
+sudo ip netns exec WAN1 ./spdz2k-party.x --ip-file-name ipFile.txt -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+./spdz2k-party.x -ip ipFile.txt -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+Verify if it works:
+
+./spdz2k-party.x --ip-file-name ipFile.txt -p 0 -N 2 -F -R 64 -SP 48 -v abio
+sudo ip netns exec WAN ./spdz2k-party.x --ip-file-name ipFile.txt -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+
+
+./spdz2k-party.x -pn 5000 -p 0 -N 2 -F -R 64 -SP 48 -v abio
+sudo ip netns exec WAN ./spdz2k-party.x -pn 6000 -h 10.0.0.1 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+socat -v TCP-LISTEN:6000,bind=10.0.0.1,fork,reuseaddr TCP:0.0.0.0:5000 (forward msg from client to server)
+
+
+socat -v TCP-LISTEN:6001,bind=127.0.0.1,fork,reuseaddr TCP:10.0.0.1:6002 (forward msg from server to client, link-1)
+socat -v TCP-LISTEN:6002,bind=10.0.0.1,fork,reuseaddr TCP:10.0.0.2:6001  (forward msg from server to client, link-2)
+
+
+sudo ip netns exec WAN ./spdz2k-party.x -h 10.0.0.2 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+
+sudo ip netns exec WAN0 ./spdz2k-party.x -h 10.0.0.1 -p 0 -N 2 -F -R 64 -SP 48 -v abio
+sudo ip netns exec WAN1 ./spdz2k-party.x -h 10.0.0.1 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+
+
+
+sudo ip netns exec WAN0 ./spdz2k-party.x -h 10.0.0.1 -p 0 -N 2 -F -R 64 -SP 48 -v abio
+sudo ip netns exec WAN1 ./spdz2k-party.x -h 10.0.0.1 -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+
+
+
+
+sudo ip netns exec WAN nc -l 10.0.0.2 8000
+
+
+echo "Hello, World!" | nc 10.0.0.1 8000
+sudo socat TCP-LISTEN:8000,bind=10.0.0.1,fork,reuseaddr TCP:10.0.0.2:8000
+
+
+./spdz2k-party.x -p 0 -N 2 -F -R 64 -SP 48 -v abio
+./spdz2k-party.x -p 1 -N 2 -F -R 64 -SP 48 -v abio
+
+
+
+
+./spdz2k-party.x -p 0 -N 2 -F -R 64 -SP 48 -v abio
+./spdz2k-party.x -p 1 -N 2 -F -R 64 -SP 48 -v abio
