@@ -1,7 +1,7 @@
 from common.helper import *
 from common.constants import *
 import secrets
-from fss import sampleBits,ICNew,GroupElement,FSS_RING_LEN,FSS_INPUT_LEN,FlexKey
+from CondEval.libfss.fss import sampleBits,ICNew,GroupElement,FSS_RING_LEN,FSS_INPUT_LEN,FlexKey
 import pickle
 
 import asyncio
@@ -86,10 +86,6 @@ class MaliciousFSS:
             ###########Encrypt keys##############
             p0,p1,t = self.encryptKeys[i]
            
-
-   
-            
-            
             if _type == 0:# Type 0 <-> normal keys
                 #Permutation with p0
                 idx0 = p0^t
@@ -191,13 +187,10 @@ class Bank:
             v1 = mod_sub(v,v0,AUTHENTICATED_MODULO)
             authen_v0,authen_v1 = self.genAuthen(v)
             truncs.append( (v,v0,v1,authen_v0,authen_v1) )
-
         return truncs
 
     def prepCircuit(self):
-        
-
-        """Return the pseudorandom tuples for online computation due to circuit C"""
+        """Return the arithemtical sharing of pseudorandom data for online computation for the given cosine-similarity computation circuit C"""
         vec_len = len(self.vec_v)
         # Prepare-1. For inner-product (s \cdot v) input wire preparation, output wire preparation
         in_s = self.getAuthTuple(INPUT_BITS, vec_len)
@@ -248,7 +241,6 @@ class Bank:
                 # Masked input data of client/bank
                 self.vec_s,
                 self.vec_v,
-
                 self.alpha[_start],
 
                 ###First circuit layer###
@@ -275,7 +267,7 @@ class Bank:
 
                 fss2keys[i]
             ]
-            with open('/home/crypto/Desktop/overleaf-CondEval/benchmark/data/data.pkl'+str(i), 'wb') as file:
+            with open('./data/data.pkl'+str(i), 'wb') as file:
                 pickle.dump(server_correlated, file)
 
     '''
@@ -310,12 +302,11 @@ async def async_main():
     pool = Pool()
     pool.add_http_server(addr="127.0.0.1", port=NETWORK_BANK_PORT)
     for i in range(2):
-        pool.add_http_client("server"+str(i), addr="127.0.0.1", port=NETWORK_SERVER_PORTS[i])
+        pool.add_http_client("server"+str(i), addr="127.0.0.1", port=BENCHMARK_NETWORK_PORTS[i])
     pool.add_http_client("client", addr="127.0.0.1", port=NETWORK_CLIENT_PORT)
     
 
     TRUE_POSITIVE=0
-
     for index in range(TEST_NUM):
         bank = Bank(index)
         bank.prepCircuit()
@@ -328,13 +319,13 @@ async def async_main():
             await pool.send("client", "Ready to start online input!")
 
         # Online: oblivious transfer with servers
-        ot = OnlineOT()
-        for i in range(2):
-            c2keys = bank.sendOTKeys(i)
-            maskBits = await pool.recv("server"+str(i) )
-            # Sender returned masking message pairs
-            obtains = [ ot.sendMaskedMessages(maskBits[j],c2keys[j][0],c2keys[j][1])  for j in range(FSS_AMOUNT) ]
-            await pool.send("server"+str(i), obtains)
+        # ot = OnlineOT()
+        # for i in range(2):
+        #     c2keys = bank.sendOTKeys(i)
+        #     maskBits = await pool.recv("server"+str(i) )
+        #     # Sender returned masking message pairs
+        #     obtains = [ ot.sendMaskedMessages(maskBits[j],c2keys[j][0],c2keys[j][1])  for j in range(FSS_AMOUNT) ]
+        #     await pool.send("server"+str(i), obtains)
 
         ################# Final-Verification #################
         mac_verify = 0

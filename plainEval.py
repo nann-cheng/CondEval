@@ -1,8 +1,3 @@
-# import sys
-# sys.path.insert(0, '../') # Add the parent directory to the module search path
-# from my_module import my_function # Import the function from the parent module
-
-
 from common.helper import *
 from common.constants import *
 import math
@@ -25,7 +20,6 @@ def innerProduct(s,v):
 
 def binaryLen(val):
     print( math.log(val,2) )
-
 
 correctIndexes=[]
 
@@ -91,11 +85,10 @@ for index in range(TEST_NUM):
             TRUE_POSITIVE+=1
             correctIndexes.append(index)
 
-print("TRUE_POSITIVE is: ",TRUE_POSITIVE)
+print("Total true positives are ",TRUE_POSITIVE)
 # print("SAMPLE_NUM is: ",TEST_NUM)
-print("TP is: ",TRUE_POSITIVE/TEST_NUM)
-
-print("average time cost is: ",1000*(time.time()-start_time)/TEST_NUM, "ms")
+print("TP is ",TRUE_POSITIVE/TEST_NUM)
+print("On average time cost for each evaluation is ",1000*(time.time()-start_time)/TEST_NUM, "ms")
 
 # print(correctIndexes)
 

@@ -2,7 +2,7 @@ from bank import Bank
 from server import Server
 from common.helper import *
 from common.constants import *
-from fss import FSS_RING_LEN,GroupElement
+from CondEval.libfss.fss import FSS_RING_LEN,GroupElement
 import time
 import pickle
 
@@ -44,7 +44,7 @@ for index in range(PARTIAL_SAMPLE):
         servers.append(server)
         # Load prepared pickle data
         share=None
-        with open('/home/crypto/Desktop/overleaf-CondEval/benchmark/data/data.pkl'+str(i), 'rb') as file:
+        with open('./data/data.pkl'+str(i), 'rb') as file:
             share = pickle.load(file)
         server.receiveCircuit(share)
     # Online-Step1: Input protocol !!Embedded into offline random data!!

@@ -1,4 +1,13 @@
-## How to test the protocol?
+This is a fast proto-type implementation of the protocol in the paper *Privacy-preserving Cosine Similarity Computation with Malicious Security Applied to Biometric Authentication*.
+
+## Offline phase
+
+We have the bank distribute secret sharing of the required correlated randomness in the offline phase, which happens before online authentication, and the result is written to data/
+
+`python3 dealer.py`
+
+
+## Online phase
 
 The protocol run in a setting with four parties.
 
@@ -6,10 +15,9 @@ The protocol run in a setting with four parties.
 * A bank generating offline phase correlated randomness as well as referenced template for authentication.
 * Two servers responsible for executing secure computation.
 
-To test the protocol, run  
+To test the protocol, sequentially run   
 
-1. python server.py 0   python server.py 1
+`python server.py 0`   `python server.py 1`
 
-2. python bank.py
-
-3. python client.py
+<!-- 2. python bank.py
+3. python client.py -->

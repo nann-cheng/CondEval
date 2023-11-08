@@ -1,9 +1,8 @@
-# if __name__ == "main":
 RING_LEN = 1
 seed=135124
 
 def dcf_test():
-    from fss import DCF, GroupElement
+    from CondEval.libfss.fss import DCF, GroupElement
 
     dcf = DCF(ring_len = RING_LEN)
 
@@ -23,7 +22,7 @@ def dcf_test():
 
 
 def ddcf_test():
-    from fss import DDCF, GroupElement
+    from CondEval.libfss.fss import DDCF, GroupElement
 
     ddcf = DDCF(ring_len = RING_LEN)
 
@@ -53,7 +52,7 @@ def ddcf_test():
 
 
 def BinIC_test(val):
-    from fss import BinIC, GroupElement
+    from CondEval.libfss.fss import BinIC, GroupElement
 
     ic = BinIC()
 
@@ -72,13 +71,12 @@ def BinIC_test(val):
 
     v0.selfPrint()
     v1.selfPrint()
-
     v0+=v1
     v0.selfPrint()
 
 
 def IC_test():
-    from fss import IntCmp, GroupElement
+    from CondEval.libfss.fss import IntCmp, GroupElement
 
     ic = IntCmp(ring_len = RING_LEN)
 
@@ -104,7 +102,7 @@ def IC_test():
 
 
 def NewIC_test(val,betaInt):
-    from fss import IntCmpNew, GroupElement
+    from CondEval.libfss.fss import IntCmpNew, GroupElement
 
     inputLen = 32
 
