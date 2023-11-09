@@ -4,6 +4,7 @@ from pathlib import Path
 # Calculate the path to the root of the project
 root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
+
 from libfss.fss import (
     FSS_INPUT_LEN,
     FSS_RING_LEN,
@@ -392,7 +393,8 @@ async def async_main(_id):
 
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         share = None
-        with open("./data/offline.pkl" + str(_id), "rb") as file:
+        parent_location = Path(__file__).resolve().parent.parent
+        with open(parent_location / ("data/offline.pkl" + str(_id)), "rb") as file:
             share = pickle.load(file)
         server.receiveCircuit(share)
 
@@ -402,7 +404,6 @@ async def async_main(_id):
         # print("mShares: ",mShares)
 
         print("Debug-0")
-
         if _id == 0:
             otherShares = await pool.recv("server")
             pool.asend("server", mShares)
