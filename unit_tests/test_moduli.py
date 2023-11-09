@@ -76,7 +76,7 @@ def convert_raw(vec):
         if v_int>=0:
             ret.append(v_int)
         else:
-            ret.append(INPUT_MODULO+v_int)
+            ret.append(SEMI_HONEST_MODULO+v_int)
     return ret
 
 vec_s=convert_raw(vec_s)
@@ -87,15 +87,15 @@ threshold = convert_raw([0.33698207])[0]
 def innerProduct(s,v):
     _size = len(s)
     ret=0
-    product = vec_mul(s,v,INPUT_MODULO)
+    product = vec_mul(s,v,SEMI_HONEST_MODULO)
     for v in product:
-        ret = ring_add(ret, v,INPUT_MODULO)
+        ret = ring_add(ret, v,SEMI_HONEST_MODULO)
     return ret
 
 
-valTest = ring_mul(vec_s[0],vec_v[0],INPUT_MODULO)
+valTest = ring_mul(vec_s[0],vec_v[0],SEMI_HONEST_MODULO)
 
-# moduloVal_print("one multiple: ", ring_mul(vec_s[0],vec_v[0],INPUT_MODULO))
+# moduloVal_print("one multiple: ", ring_mul(vec_s[0],vec_v[0],SEMI_HONEST_MODULO))
 
 
 
@@ -103,22 +103,22 @@ valTest = ring_mul(vec_s[0],vec_v[0],INPUT_MODULO)
 left = innerProduct(vec_s,vec_v)
 print("s-v: ",left/(CONVERSION_FACTOR*CONVERSION_FACTOR))
 
-left = ring_mul(left, left,INPUT_MODULO)
+left = ring_mul(left, left,SEMI_HONEST_MODULO)
 print("sv*sv: ",left/(CONVERSION_FACTOR*CONVERSION_FACTOR*CONVERSION_FACTOR*CONVERSION_FACTOR))
 
-right= ring_mul(threshold, threshold,INPUT_MODULO)
+right= ring_mul(threshold, threshold,SEMI_HONEST_MODULO)
 print("right-track: ",right)
 
 ss = innerProduct(vec_s,vec_s)
-ss = ring_mul(ss, ss,INPUT_MODULO)
+ss = ring_mul(ss, ss,SEMI_HONEST_MODULO)
 
-right=ring_mul(right, ss,INPUT_MODULO)
+right=ring_mul(right, ss,SEMI_HONEST_MODULO)
 print("right-track: ",right)
 
 vv = innerProduct(vec_v,vec_v)
-vv = ring_mul(vv, vv,INPUT_MODULO)
+vv = ring_mul(vv, vv,SEMI_HONEST_MODULO)
 
-right=ring_mul(right, vv,INPUT_MODULO)
+right=ring_mul(right, vv,SEMI_HONEST_MODULO)
 print("right-track: ",right)
 
 print("left-right: ", left-right)

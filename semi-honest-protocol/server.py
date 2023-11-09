@@ -1,9 +1,6 @@
 import sys
 from pathlib import Path
-
-# Calculate the path to the root of the project
-root_path = Path(__file__).parent.parent
-sys.path.append(str(root_path))
+sys.path.append(str(Path(__file__).parent.parent))
 
 from libfss.fss import (
     FSS_INPUT_LEN,
@@ -57,7 +54,7 @@ class Server:
         return self.vec_v
 
     def receiveCircuit(self, all):
-        for index, key in enumerate(CIRCUIT_TOPOLOGY_4_MALICIOUS):
+        for index, key in enumerate(CIRCUIT_TOPOLOGY):
             if key == "fss1":
                 self.circuit[key] = [
                     NewICKey.unpack(all[index][i], 1) for i in range(FSS_AMOUNT)

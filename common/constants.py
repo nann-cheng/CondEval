@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 # Get the absolute path to the directory where this script is located
 parent_location = Path(__file__).resolve().parent.parent
 
@@ -21,17 +22,57 @@ for line in lines:
 SAMPLE_NUM = len(ALL_RESULTS)
 
 
+# Each element within the input vector is represented in 64 bits
+INPUT_BITS_LEN = 64
+
+
+"""
+Parameter used in the semi-honest protocol:
+"""
+SEMI_HONEST_MODULO = 1 << INPUT_BITS_LEN
+
+
+"""
+Parameter used in the malicious protocol:
+"""
+ALPHA_BITS_LEN = 32
+AUTHENTICATED_BITS = ALPHA_BITS_LEN + INPUT_BITS_LEN
+AUTHENTICATED_MODULO = 1 << AUTHENTICATED_BITS
+ALPHA_MODULO = 1 << ALPHA_BITS_LEN
+
+
 TEST_NUM = 1
 
 # print(ALL_RESULTS)
 
 """
-This defines the desired circuit topology, which computes the cosine similarity between two non-normalized vectors S and V.   
+This defines the desired circuit topology, which computes the cosine similarity between two non-normalized vectors S and V under the malicious setting.   
 """
-CIRCUIT_TOPOLOGY = [
+CIRCUIT_TOPOLOGY_4_MALICIOUS = [
     "mask_vec_s",  # masked client input data
     "mask_vec_v",  # Masked bank input data
     "alpha",
+    "in_s",
+    "in_v",  # Input wire random offset
+    "s_v",
+    "s_s",
+    "v_v",  # Beaver's triples for innerproduct
+    "ip_out",
+    "fss1",  # xy inner product output wire random offset
+    "ss_out",
+    "vv_out",  # ss, vv inner product output wire random offset
+    "ip2",
+    "sv_mul",  # Associated beaver's triple for previous output offsets
+    "sub_Truncate",  # The random offsets associated with truncation & fss2 random offset
+    "fss2",
+]
+
+"""
+This defines the desired circuit topology, which computes the cosine similarity between two non-normalized vectors S and V under the semi-honest setting.   
+"""
+CIRCUIT_TOPOLOGY_4_SEMI_HONEST = [
+    "mask_vec_s",  # masked client input data
+    "mask_vec_v",  # Masked bank input data
     "in_s",
     "in_v",  # Input wire random offset
     "s_v",
@@ -61,20 +102,12 @@ FSS_TYPES = [0 for i in range(FSS_AMOUNT)]
 # Due to this specified circuit, the required random number amount be like following
 MAC_CHECK_RAND_AMOUNT = 2 * FSS_AMOUNT + 2
 
-ALPHA_BITS = 32
+
 import random, secrets
 
-# ALPHA_VALUE = secrets.randbits(ALPHA_BITS)
+# ALPHA_VALUE = secrets.randbits(ALPHA_BITS_LEN)
 
-MAC_RAND_VEC = [secrets.randbits(ALPHA_BITS) for i in range(MAC_CHECK_RAND_AMOUNT)]
-
-INPUT_BITS = 64
-AUTHENTICATED_BITS = ALPHA_BITS + INPUT_BITS
-
-ALPHA_MODULO = 1 << ALPHA_BITS
-INPUT_MODULO = 1 << INPUT_BITS
-
-AUTHENTICATED_MODULO = 1 << AUTHENTICATED_BITS
+MAC_RAND_VEC = [secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)]
 
 
 """

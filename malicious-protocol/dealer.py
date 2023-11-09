@@ -1,8 +1,21 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent))
+
 from common.helper import *
 from common.constants import *
 import secrets
-from fss import sampleBits, ICNew, GroupElement, FSS_RING_LEN, FSS_INPUT_LEN, FlexKey
+from libfss.fss import (
+    sampleBits,
+    ICNew,
+    GroupElement,
+    FSS_RING_LEN,
+    FSS_INPUT_LEN,
+    FlexKey,
+)
 import pickle
+
 
 class MaliciousFSS:
     """
@@ -286,7 +299,9 @@ class Dealer:
                 [(e[_start], e[_start + 2]) for e in sub_TruncateArr],
                 fss2keys[i],
             ]
-            with open("./data/offline.pkl" + str(i), "wb") as file:
+
+            parent_location = Path(__file__).resolve().parent.parent
+            with open(parent_location / ("data/offline.pkl" + str(i)), "wb") as file:
                 pickle.dump(server_correlated, file)
 
 

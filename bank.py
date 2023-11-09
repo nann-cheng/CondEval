@@ -139,7 +139,7 @@ class Bank:
         """Instantiate PRFs to generate random alpha and random offset"""
         
         # v = ALPHA_VALUE
-        v = secrets.randbits(ALPHA_BITS)
+        v = secrets.randbits(ALPHA_BITS_LEN)
         v0 = secrets.randbits(AUTHENTICATED_BITS)
         v1 = mod_sub(v,v0,AUTHENTICATED_MODULO)
         self.alpha = [v,v0,v1]
@@ -193,8 +193,8 @@ class Bank:
         """Return the arithemtical sharing of pseudorandom data for online computation for the given cosine-similarity computation circuit C"""
         vec_len = len(self.vec_v)
         # Prepare-1. For inner-product (s \cdot v) input wire preparation, output wire preparation
-        in_s = self.getAuthTuple(INPUT_BITS, vec_len)
-        in_v = self.getAuthTuple(INPUT_BITS, vec_len)
+        in_s = self.getAuthTuple(INPUT_BITS_LEN, vec_len)
+        in_v = self.getAuthTuple(INPUT_BITS_LEN, vec_len)
         in_v_value=[val[0] for val in in_v]
         self.vec_v = vec_add(self.vec_v, in_v_value, AUTHENTICATED_MODULO)
 
@@ -228,8 +228,8 @@ class Bank:
         #################The 2nd fss offset preparation#################
 
         # Prepare-2.1 For square gate (s \cdot s, v \cdot v) square pair preparation
-        ss_out = self.getAuthTuple(INPUT_BITS)
-        vv_out = self.getAuthTuple(INPUT_BITS)
+        ss_out = self.getAuthTuple(INPUT_BITS_LEN)
+        vv_out = self.getAuthTuple(INPUT_BITS_LEN)
 
         # square gate, 2-input multiplication, using the first fss random offset
         ip2 = self.genTuple2( ring_mul(ip_out[0][0],ip_out[0][0],AUTHENTICATED_MODULO))

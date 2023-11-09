@@ -2,10 +2,9 @@ This is a fast proto-type implementation of the protocol in the paper *Privacy-p
 
 ## Offline phase
 
-We have the bank distribute secret sharing of the required correlated randomness in the offline phase, which happens before online authentication, and the result is written to data/
+We have the bank distribute secret sharing of the required correlated randomness in the offline phase, which happens before online authentication, generate correlated randomness data written to data/offline.pk0 and data/offline.pk1.
 
 `python3 dealer.py`
-
 
 ## Online phase
 
