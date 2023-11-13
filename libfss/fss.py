@@ -547,7 +547,7 @@ class CondEval(object):
     outputs: an pair of encapsulated CondEvalKey
     """
 
-    def __init__(self,ring_len, cipher, sk):
+    def __init__(self, ring_len, cipher, sk):
         self.ring_len = ring_len
         self.cipher = cipher
         self.sk = sk
@@ -573,10 +573,15 @@ class CondEval(object):
             sampleBits(None, ext_fssKey_len * 8).to_bytes(ext_fssKey_len, "big")
         )
 
-        concatenate_key_t = bytearray(fssKeyPairs[t]).extend(t.to_bytes(1, "big"))
-        concatenate_key_not_t = bytearray(fssKeyPairs[1 - t]).extend(
-            (1 - t).to_bytes(1, "big")
-        )
+        tmp = t.to_bytes(1, "big")
+        print("tmp: ",tmp)
+        concatenate_key_t = bytearray(fssKeyPairs[t])
+        concatenate_key_t += tmp
+
+        concatenate_key_not_t = bytearray(fssKeyPairs[1 - t])
+        tmp = (1-t).to_bytes(1, "big")
+        concatenate_key_not_t += tmp
+        
         m0_0 = byteArrayXor(sk0_0, concatenate_key_t)
         m0_1 = byteArrayXor(sk0_1, concatenate_key_not_t)
         m1_0 = byteArrayXor(sk1_0, concatenate_key_t)
@@ -607,22 +612,24 @@ class CondEval(object):
         result = bytearray(xor_p.to_bytes(1, "big"))
         return result.extend(sk)
 
-     """
+    """
         Upon received other party's message, start the evaluation locally.
         Input:
             boolean_share: 0 or 1 (int)
         Output:
             a byte_array object (will be sent to the other party)
     """
-    def evaluate(self, other,ring_ele):
+
+    def evaluate(self, other, ring_ele):
         p = int.from_bytes(other[0], "big")
         cipher = self.cipher[p]
         decrypted = byteArrayXor(cipher, other[1:])
 
-        id = int.from_bytes(decrypted[-1],"big")
-        icKey =  NewICKey.unpack( decrypted[:-1], self.ring_len)
+        id = int.from_bytes(decrypted[-1], "big")
+        icKey = NewICKey.unpack(decrypted[:-1], self.ring_len)
         ic = ICNew(ring_len=1)
         return ic.eval(id, ring_ele, icKey)
+
 
 class FlexKey(object):
     """
