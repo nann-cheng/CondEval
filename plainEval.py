@@ -4,104 +4,87 @@ import math
 import time
 import json
 
-test_conversion = (1<<7)
 
-def convert_raw(vec):
-    # ret=[v*CONVERSION_FACTOR for v in vec]
-    ret=[int(v*test_conversion) for v in vec]
+def plain_convert_raw(vec):
+    ret = []
+    for v in vec:
+        v_int = int(v * CONVERSION_FACTOR)
+        ret.append(v_int)
     return ret
 
-def innerProduct(s,v):
+
+def innerProduct(s, v):
     _size = len(s)
-    ret=0
+    ret = 0
     for i in range(_size):
-        ret += s[i]*v[i]
+        ret += s[i] * v[i]
     return ret
+
 
 def binaryLen(val):
-    print( math.log(val,2) )
+    print(math.log(val, 2))
 
-correctIndexes=[]
 
-A_SCALE= int( (1/0.11368578)*(1<<10))
-B_SCALE = 1<<10
-TRUE_POSITIVE=0
+correctIndexes = []
+TRUE_POSITIVE = 0
 
 start_time = time.time()
-TEST_NUM=SAMPLE_NUM
-# TEST_NUM=5000
-for index in range(TEST_NUM):
-    vec_s = ALL_DICT_DATA[ ALL_LABELS[2*index+1] ]
-    vec_v = ALL_DICT_DATA[ ALL_LABELS[2*index] ]
+BENCHMARK_TESTS_AMOUNT = SAMPLE_NUM
+BENCHMARK_TESTS_AMOUNT = 10
+for index in range(BENCHMARK_TESTS_AMOUNT):
+    vec_s = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index + 1]])
+    vec_v = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index]])
+    left = innerProduct(vec_s, vec_v)
+    c1 = left >= 0
+    print("c1: ", index, c1)
 
-    # print("one multiple: ", vec_s[0]*vec_v[0]/CONVERSION_FACTOR)
+    left = left * left
+    left = left * (1 / THRESHOLD_TAU_SQUARE)
 
-    # left = innerProduct(vec_s,vec_v)
-    # if left<0:
-    #     print("Index", index, "Warning: s*v is negative!",left)
-
-    # vec_s=convert_raw(vec_s)
-    # vec_v=convert_raw(vec_v)
-    left = innerProduct(vec_s,vec_v)
-    c1 = (left < 0)
-    # print("s-v: ",left)
-    left = left*left
-    # print("sv*sv: ",left)
-    # left = left*A_SCALE
-
-
-
-    # right=threshold*threshold
+    right = innerProduct(vec_s, vec_s)
+    vv = innerProduct(vec_v, vec_v)
+    right = right * vv
     # print("right-track: ",right)
-
-    right = innerProduct(vec_s,vec_s)
-    # print("ss: ",ss)
-    # print("right-track: ",right)
-
-    vv=innerProduct(vec_v,vec_v)
-    # print("vv: ",vv)
-    right=right*vv
-    # print("right-track: ",right)
-
-    # right=right*int(0.11368578*test_conversion*test_conversion)
-
-    right=right*0.11368578
-    # right=right*B_SCALE
-
-    c2 = (left-right >= 0)
-
+    c2 = left - right >= 0
     c = c1 and c2
 
     # print("right-track: ",binaryLen(right))
     # print("right-track: ",right)
-    if left-right <0:
-        # print("Index: ",index,": ",1)
-        if ALL_RESULTS[index] == 0:
-            TRUE_POSITIVE+=1
-            correctIndexes.append(index)
-    else:
-        # print("Index: ",index,": ",0)
-        if ALL_RESULTS[index] == 1:
-            TRUE_POSITIVE+=1
-            correctIndexes.append(index)
+    if c == ALL_RESULTS[index]:
+        TRUE_POSITIVE += 1
+        correctIndexes.append(index)
 
-print("Total true positives are ",TRUE_POSITIVE)
-# print("SAMPLE_NUM is: ",TEST_NUM)
-print("TP is ",TRUE_POSITIVE/TEST_NUM)
-print("On average time cost for each evaluation is ",1000*(time.time()-start_time)/TEST_NUM, "ms")
+    # if left - right < 0:
+    #     # print("Index: ",index,": ",1)
+    #     if ALL_RESULTS[index] == 0:
+    #         TRUE_POSITIVE += 1
+    #         correctIndexes.append(index)
+    # else:
+    #     # print("Index: ",index,": ",0)
+    #     if ALL_RESULTS[index] == 1:
+    #         TRUE_POSITIVE += 1
+    #         correctIndexes.append(index)
+
+print("Total true positives are ", TRUE_POSITIVE)
+# print("SAMPLE_NUM is: ",BENCHMARK_TESTS_AMOUNT)
+print("TP is ", TRUE_POSITIVE / BENCHMARK_TESTS_AMOUNT)
+print(
+    "On average time cost for each evaluation is ",
+    1000 * (time.time() - start_time) / BENCHMARK_TESTS_AMOUNT,
+    "ms",
+)
 
 # print(correctIndexes)
-
 
 
 # Data to be written
 # dictionary = {
 #     "test": correctIndexes
 # }
- 
+
 # # Serializing json
 # json_object = json.dumps(dictionary, indent=4)
- 
+
 # # Writing to sample.json
 # with open("test.json", "w") as outfile:
 #     outfile.write(json_object)

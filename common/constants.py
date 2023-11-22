@@ -41,8 +41,6 @@ AUTHENTICATED_MODULO = 1 << AUTHENTICATED_BITS
 ALPHA_MODULO = 1 << ALPHA_BITS_LEN
 
 
-TEST_NUM = 1
-
 # print(ALL_RESULTS)
 
 """
@@ -75,7 +73,7 @@ CIRCUIT_TOPOLOGY_4_SEMI_HONEST = [
     "mask_vec_v",  # Masked bank input data
     "in_s",
     "in_v",  # Input wire random offset
-    "s_v",
+    "s_v",  # Beaver's triples for innerproduct
     "s_s",
     "v_v",  # Beaver's triples for innerproduct
     "ip_out",
@@ -88,12 +86,36 @@ CIRCUIT_TOPOLOGY_4_SEMI_HONEST = [
     "fss2",
 ]
 
+
+"""
+This defines the desired circuit topology, which computes the cosine similarity between two non-normalized vectors S and V under the semi-honest setting.   
+"""
+CIRCUIT_TOPOLOGY_4_NAIVE_SEMI_HONEST = [
+    "mask_vec_s",  # masked client input data
+    "mask_vec_v",  # Masked bank input data
+    "in_s",
+    "in_v",  # Input wire random offset
+    "s_v",  # Beaver's triples for innerproduct
+    "s_s",
+    "v_v",  # Beaver's triples for innerproduct
+    "ip_out",
+    "fss1",  # xy inner product output wire random offset
+    "ss_out",
+    "vv_out",  # ss, vv inner product output wire random offset
+    "ip2",
+    "sv_mul",  # Associated beaver's triple for previous output offsets
+    "sub_Truncate",  # The random offsets associated with truncation & fss2 random offset
+    "fss2",
+    "extraBeaver",
+]
+
 TRUNCATE_FACTOR = 1 << 32
 CONVERSION_FACTOR = 1 << 8
 
 # 11370622
-A_SCALE = int((1 / 0.11368578) * (1 << 8))
-B_SCALE = 1 << 8
+THRESHOLD_TAU_SQUARE = 0.11368578
+A_SCALE = int((1 / THRESHOLD_TAU_SQUARE) * (1 << 8))
+B_SCALE = CONVERSION_FACTOR
 
 FSS_AMOUNT = 10
 FSS_TYPES = [0 for i in range(FSS_AMOUNT)]
@@ -117,3 +139,6 @@ BENCHMARK_NETWORK_PORTS = ["61001", "61002"]
 BENCHMARK_IPS = ["127.0.0.1", "127.0.0.1"]
 # NETWORK_BANK_PORT = "60000"
 # NETWORK_CLIENT_PORT = "60005"
+BENCHMARK_TESTS_AMOUNT = 1
+
+BENCHMARK_TEST_CORRECTNESS = True

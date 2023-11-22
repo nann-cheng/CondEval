@@ -1,0 +1,204 @@
+2023-11-20 12:44:15,922 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:15,922 - tno.mpc.communication.httphandlers - ERROR - Message not received.
+Traceback (most recent call last):
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 980, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)  # type: ignore[return-value]  # noqa
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 1076, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 1060, in create_connection
+    sock = await self._connect_sock(
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 969, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/usr/lib/python3.10/asyncio/selector_events.py", line 501, in sock_connect
+    return await fut
+  File "/usr/lib/python3.10/asyncio/selector_events.py", line 541, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 61001)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/crypto/.local/lib/python3.10/site-packages/tno/mpc/communication/httphandlers.py", line 146, in _send
+    async with self.session.post(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/client.py", line 536, in _request
+    conn = await self._connector.connect(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 540, in connect
+    proto = await self._create_connection(req, traces, timeout)
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 901, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 1206, in _create_direct_connection
+    raise last_exc
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 1175, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 988, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:61001 ssl:default [Connect call failed ('127.0.0.1', 61001)]
+2023-11-20 12:44:16,943 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:16,950 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:16,957 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:16,963 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:16,966 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:16,967 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:16,967 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:16,967 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:16,967 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 0 is 1
+By 0 it is a mismatch.
+Online time cost is:  1.0557043552398682
+2023-11-20 12:44:17,368 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:17,373 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,376 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,378 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,380 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,381 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:17,382 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 1 is 1
+By 1 it is a mismatch.
+Online time cost is:  0.021305322647094727
+2023-11-20 12:44:17,778 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:17,782 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,785 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,788 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,792 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,793 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:17,794 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:17,794 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:17,794 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:17,794 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 2 is 1
+By 2 it is a mismatch.
+Online time cost is:  0.01839423179626465
+2023-11-20 12:44:18,176 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:18,177 - tno.mpc.communication.httphandlers - ERROR - Message not received.
+Traceback (most recent call last):
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 980, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)  # type: ignore[return-value]  # noqa
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 1076, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 1060, in create_connection
+    sock = await self._connect_sock(
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 969, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/usr/lib/python3.10/asyncio/selector_events.py", line 501, in sock_connect
+    return await fut
+  File "/usr/lib/python3.10/asyncio/selector_events.py", line 541, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 61001)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/crypto/.local/lib/python3.10/site-packages/tno/mpc/communication/httphandlers.py", line 146, in _send
+    async with self.session.post(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/client.py", line 1141, in __aenter__
+    self._resp = await self._coro
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/client.py", line 536, in _request
+    conn = await self._connector.connect(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 540, in connect
+    proto = await self._create_connection(req, traces, timeout)
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 901, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 1206, in _create_direct_connection
+    raise last_exc
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 1175, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+  File "/home/crypto/.local/lib/python3.10/site-packages/aiohttp/connector.py", line 988, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:61001 ssl:default [Connect call failed ('127.0.0.1', 61001)]
+2023-11-20 12:44:19,195 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,203 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,212 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,221 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,225 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:19,227 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 3 is 1
+By 3 it is a success.
+Online time cost is:  1.0600707530975342
+2023-11-20 12:44:19,626 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:19,635 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,638 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,641 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,644 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,647 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:19,647 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:19,647 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:19,648 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:19,648 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 4 is 1
+By 4 it is a success.
+Online time cost is:  0.03205132484436035
+2023-11-20 12:44:20,055 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61002
+2023-11-20 12:44:20,058 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:20,060 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:20,063 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:20,065 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:20,066 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61001
+2023-11-20 12:44:20,066 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:20,067 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61002 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:20,067 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61001 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:20,067 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 5 is 1
+By 5 it is a success.
+Online time cost is:  0.01393270492553711

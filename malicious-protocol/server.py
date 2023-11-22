@@ -382,7 +382,7 @@ async def async_main(_id):
 
     all_online_time = 0
 
-    for index in range(TEST_NUM):
+    for index in range(BENCHMARK_TESTS_AMOUNT):
         server = Server(_id)
 
         # For Mac-check use
@@ -460,7 +460,7 @@ async def async_main(_id):
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )
         ################ Return partial values and MAC codes ######
-    print("Online time cost is: ", all_online_time / TEST_NUM)
+    print("Online time cost is: ", all_online_time / BENCHMARK_TESTS_AMOUNT)
     if _id == 0:
         await pool.shutdown()
     else:

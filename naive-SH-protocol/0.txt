@@ -1,0 +1,132 @@
+2023-11-20 12:44:15,929 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:16,929 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:16,949 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:16,953 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:16,962 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:16,965 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:16,967 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:16,967 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:16,968 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:16,968 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 0 is 1
+By 0 it is a mismatch.
+Online time cost is:  1.0495433807373047
+2023-11-20 12:44:17,346 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:17,368 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,375 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,376 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,380 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,381 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:17,382 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:17,382 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 1 is 1
+By 1 it is a mismatch.
+Online time cost is:  0.03728342056274414
+2023-11-20 12:44:17,777 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:17,779 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,784 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,786 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,790 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,793 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:17,794 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:17,794 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:17,795 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:17,795 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 2 is 1
+By 2 it is a mismatch.
+Online time cost is:  0.018469572067260742
+2023-11-20 12:44:18,180 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:19,183 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,201 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,206 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,218 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,223 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:19,227 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:19,227 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 3 is 1
+By 3 it is a success.
+Online time cost is:  1.0475454330444336
+2023-11-20 12:44:19,624 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:19,630 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,637 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,639 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,643 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,645 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:19,650 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:19,650 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:19,650 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:19,650 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 4 is 1
+By 4 it is a success.
+Online time cost is:  0.026851892471313477
+2023-11-20 12:44:20,016 - tno.mpc.communication.httphandlers - INFO - Serving on 127.0.0.1:61001
+2023-11-20 12:44:20,055 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:20,060 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:20,061 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:20,065 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:20,066 - tno.mpc.communication.httphandlers - INFO - Received message from 127.0.0.1:61002
+2023-11-20 12:44:20,067 - tno.mpc.communication.httphandlers - INFO - HTTPServer: Shutting down server task
+2023-11-20 12:44:20,067 - tno.mpc.communication.httphandlers - INFO - Server 127.0.0.1:61001 shutdown
+Total bytes received: 119
+Total messages received: 5
+2023-11-20 12:44:20,067 - tno.mpc.communication.httphandlers - INFO - Client 127.0.0.1:61002 shutdown
+Total bytes sent: 119
+Total messages sent: 5
+2023-11-20 12:44:20,067 - tno.mpc.communication.pool - INFO - Pool shutdown.
+Total bytes sent: 119
+Total messages sent: 5
+Total bytes received: 119
+Total messages received: 5
+Debug-0
+Debug- c1 by 5 is 1
+By 5 it is a success.
+Online time cost is:  0.05159139633178711

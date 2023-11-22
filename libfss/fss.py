@@ -574,14 +574,14 @@ class CondEval(object):
         )
 
         tmp = t.to_bytes(1, "big")
-        print("tmp: ",tmp)
+        # print("tmp: ",tmp)
         concatenate_key_t = bytearray(fssKeyPairs[t])
         concatenate_key_t += tmp
 
         concatenate_key_not_t = bytearray(fssKeyPairs[1 - t])
-        tmp = (1-t).to_bytes(1, "big")
+        tmp = (1 - t).to_bytes(1, "big")
         concatenate_key_not_t += tmp
-        
+
         m0_0 = byteArrayXor(sk0_0, concatenate_key_t)
         m0_1 = byteArrayXor(sk0_1, concatenate_key_not_t)
         m1_0 = byteArrayXor(sk1_0, concatenate_key_t)
@@ -608,12 +608,15 @@ class CondEval(object):
 
     def getDecryptionKey(self, boolean_share):
         xor_p = int(self.sk[-1]) ^ boolean_share
-        sk = self.sk[boolean_share]
+        sk = self.sk[0][boolean_share]
+        # print("sk type is: ",type(sk))
+        # print("sk is: ",sk)
         result = bytearray(xor_p.to_bytes(1, "big"))
-        return result.extend(sk)
+        result.extend(sk)
+        return result
 
     """
-        Upon received other party's message, start the evaluation locally.
+        Upon received other party's message (bytesarray), start the evaluation locally.
         Input:
             boolean_share: 0 or 1 (int)
         Output:
@@ -621,11 +624,13 @@ class CondEval(object):
     """
 
     def evaluate(self, other, ring_ele):
-        p = int.from_bytes(other[0], "big")
+        # print("other type is: ", type(other))
+        # print("other is: ", other)
+        p = int.from_bytes(other[:1], "big")
         cipher = self.cipher[p]
         decrypted = byteArrayXor(cipher, other[1:])
 
-        id = int.from_bytes(decrypted[-1], "big")
+        id = int.from_bytes(decrypted[-1:], "big")
         icKey = NewICKey.unpack(decrypted[:-1], self.ring_len)
         ic = ICNew(ring_len=1)
         return ic.eval(id, ring_ele, icKey)

@@ -307,7 +307,7 @@ async def async_main():
     
 
     TRUE_POSITIVE=0
-    for index in range(TEST_NUM):
+    for index in range(BENCHMARK_TESTS_AMOUNT):
         bank = Bank(index)
         bank.prepCircuit()
         # Offline
@@ -351,8 +351,8 @@ async def async_main():
             print("Mac Verification failed!\n\n")
     
     print("TRUE_POSITIVE is: ",TRUE_POSITIVE)
-    print("TEST_NUM is: ",TEST_NUM)
-    print("TP is: ",TRUE_POSITIVE/TEST_NUM)
+    print("BENCHMARK_TESTS_AMOUNT is: ",BENCHMARK_TESTS_AMOUNT)
+    print("TP is: ",TRUE_POSITIVE/BENCHMARK_TESTS_AMOUNT)
 
     # print("average time cost is: ", all_online_time/PARTIAL_SAMPLE)
     #print("average ot consume time cost is: ", ot_consume_time/PARTIAL_SAMPLE)
