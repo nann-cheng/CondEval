@@ -11,10 +11,10 @@ from libfss.fss import (
     GroupElement,
     ICNew,
     NewICKey,
-    FlexKey,
 )
 from common.helper import *
 from common.constants import *
+from constants import CIRCUIT_TOPOLOGY_4_NAIVE_MALICIOUS, RAND_VEC_LEN
 import secrets
 
 import time
@@ -40,12 +40,7 @@ class Server:
 
         self.in_wire0 = None
         self.in_wire1 = None
-
-        self.partials = []
         self.authen = []
-        self.ICfss = ICNew(sec_para=128, ring_len=1)
-        self.FSS2Key = []
-        self.trapProof = GroupElement(0, AUTHENTICATED_BITS)
 
     def get_vec_s(self):
         return self.vec_s
@@ -57,10 +52,11 @@ class Server:
         return self.vec_v
 
     def receiveCircuit(self, all):
-        for index, key in enumerate(CIRCUIT_TOPOLOGY_4_MALICIOUS):
-            if key == "fss1":
+        for index, key in enumerate(CIRCUIT_TOPOLOGY_4_NAIVE_MALICIOUS):
+            if key.startswith("fss"):
                 self.circuit[key] = [
-                    NewICKey.unpack(all[index][i], 1) for i in range(FSS_AMOUNT)
+                    NewICKey.unpack(all[index][0], AUTHENTICATED_BITS),
+                    NewICKey.unpack(all[index][1], AUTHENTICATED_BITS),
                 ]
             else:
                 self.circuit[key] = all[index]
@@ -70,31 +66,12 @@ class Server:
         # self.circuit[key] = all[index]
         # print("alpha is: ",self.circuit["alpha"])
 
-    # def genRandForMacCheck(self):
-    #     # rets=[]
-
-    #     # print("authenticated RAND number is: ",len(self.authen) - FSS_AMOUNT )
-
-    #     # for i in range(MAC_CHECK_RAND_AMOUNT):
-    #     #     rets.append( secrets.randbits(ALPHA_BITS_LEN) )
-    #         # rets.append( 1 )
-    #     return [secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT) ]
-
-    # def inputSecretFromBank(self,vals):
-    #     self.vec_v = vals
-
-    # def inputSecretS(self,vec_s):
-    #     self.vec_s=vec_s
-    #     # print("vec_s is: ",self.vec_s)
-    #     self.partials.append(vec_s)
-
     def resetInputWires(self, w0, w1):
         self.in_wire0 = w0
         self.in_wire1 = w1
 
     def onMulGate(self, keys):
-        ret = 0
-        out_share = []
+        out_share, out_authen_share = 0, 0
         # secret input calculation, and authenticated version
         for i in range(2):
             if i == 0:
@@ -105,51 +82,38 @@ class Server:
             else:
                 ret = ring_mul(self.in_wire1, self.in_wire0, AUTHENTICATED_MODULO)
                 ret = ring_mul(ret, self.circuit["alpha"], AUTHENTICATED_MODULO)
-            if keys[0] == "ip_out":
-                ret = mod_sub(
-                    ret,
-                    ring_mul(
-                        self.in_wire1, self.circuit[keys[0]][0][i], AUTHENTICATED_MODULO
-                    ),
-                    AUTHENTICATED_MODULO,
-                )
-                ret = mod_sub(
-                    ret,
-                    ring_mul(
-                        self.in_wire0, self.circuit[keys[1]][0][i], AUTHENTICATED_MODULO
-                    ),
-                    AUTHENTICATED_MODULO,
-                )
-            else:
-                ret = mod_sub(
-                    ret,
-                    ring_mul(
-                        self.in_wire1, self.circuit[keys[0]][i], AUTHENTICATED_MODULO
-                    ),
-                    AUTHENTICATED_MODULO,
-                )
-                ret = mod_sub(
-                    ret,
-                    ring_mul(
-                        self.in_wire0, self.circuit[keys[1]][i], AUTHENTICATED_MODULO
-                    ),
-                    AUTHENTICATED_MODULO,
-                )
+
+            ret = mod_sub(
+                ret,
+                ring_mul(self.in_wire1, self.circuit[keys[0]][i], AUTHENTICATED_MODULO),
+                AUTHENTICATED_MODULO,
+            )
+            ret = mod_sub(
+                ret,
+                ring_mul(self.in_wire0, self.circuit[keys[1]][i], AUTHENTICATED_MODULO),
+                AUTHENTICATED_MODULO,
+            )
             ret = ring_add(ret, self.circuit[keys[2]][i], AUTHENTICATED_MODULO)
             if i == 0:
-                self.sub_shares.append(ret)
+                out_share = ret
             else:
-                self.sub_authen.append(ret)
+                out_authen_share = ret
+
+        return (out_share, out_authen_share)
 
     # A local operation realizing FSS offset addition as well as truncation operation
     def sub_Truncate_Fss(self, ipWire, ssWire, vvWire):
         # Step2-1. Square gate
         self.resetInputWires(ipWire, ipWire)
-        self.onMulGate(["ip_out", "ip_out", "ip2"])
+        cur_output = self.onMulGate(["ip_out", "ip_out", "ip2"])
+        self.sub_shares.append(cur_output[0])
+        self.sub_authen.append(cur_output[1])
 
         # Step2-2. Mul gate & local sub
         self.resetInputWires(ssWire, vvWire)
-        self.onMulGate(["ss_out", "vv_out", "sv_mul"])
+        cur_output = self.onMulGate(["ss_out", "vv_out", "sv_mul"])
+        self.sub_shares.append(cur_output[0])
+        self.sub_authen.append(cur_output[1])
 
         # a value scaling, b value scaling
         self.sub_shares[0] = ring_mul(A_SCALE, self.sub_shares[0], AUTHENTICATED_MODULO)
@@ -161,99 +125,38 @@ class Server:
         self.sub_authen[1] = ring_mul(B_SCALE, self.sub_authen[1], AUTHENTICATED_MODULO)
         subAuth = mod_sub(self.sub_authen[0], self.sub_authen[1], AUTHENTICATED_MODULO)
 
-        trunc_masks = []
-        for r in self.circuit["sub_Truncate"]:
-            trunc_masks.append(ring_add(sub, r[0], AUTHENTICATED_MODULO))
-            self.authen.append(ring_add(subAuth, r[1], AUTHENTICATED_MODULO))
-        return trunc_masks
+        rnd_wire = self.circuit["sub_Truncate"]
+        trunc_share = ring_add(sub, rnd_wire[0], AUTHENTICATED_MODULO)
+        self.authen.append(ring_add(subAuth, rnd_wire[1], AUTHENTICATED_MODULO))
 
-    # ipipShares.append( servers[i].onMulGate(["ip_out", "ip_out", "ip2","square_out"]) )
+        return trunc_share
 
-    # \alpha+subTrunc+offset
-    def onFinalFssReveal(self, keys, index):
-        ret = 0
-        out_share = []
+    def pushNewAuthenShare(self, auth_share):
+        self.authen.append(auth_share)
 
-        # secret input calculation, and authenticated version
-        for i in range(2):
-            if i == 1:
-                ret = ring_mul(
-                    self.in_wire0, self.circuit["alpha"], AUTHENTICATED_MODULO
-                )
-            else:
-                if self.id == 0:
-                    ret = self.in_wire0
-                else:
-                    ret = 0
-            ret = mod_sub(ret, self.circuit[keys[0]][2 + i], AUTHENTICATED_MODULO)
-            ret = ring_add(ret, self.circuit[keys[1]][index][i], AUTHENTICATED_MODULO)
-            ret = ring_add(ret, self.circuit[keys[2]][index][i], AUTHENTICATED_MODULO)
-            out_share.append(ret)
-        self.authen.append(out_share[1])
-        return out_share[0]
-
-    def getFSS2SK(self, index, c1):
-        # player1.append( ([bin_flexKey1_0,bin_flexKey1_1],[sk0_0,sk0_1,p0]) )
-        keys = self.circuit["fss2"][index][1]
-        position = c1.getValue() ^ keys[2]
-        key = keys[position]
-
-        # print(type(position))
-        # print(type(key))
-        return [position, bytes(key)]
-
-    def decryptFSS2Key(self, sk):
-        for j in range(FSS_AMOUNT):
-            idx = sk[j][0]
-            correctKey = bytearray(sk[j][1])
-            # Restore FlexKey format from binary cipher
-            correctCipher = self.circuit["fss2"][j][0][idx]
-            correctBin = byteArrayXor(correctCipher, correctKey)
-            # In self.FSS2Key stores FlexKey object
-            self.FSS2Key.append(FlexKey.unpack(bytes(correctBin), FSS_RING_LEN))
-
-    def onFssCmp(self, maskVal_vec, key):
+    def onFssCmp(self, maskVal, key):
         ret = []
-        ic = ICNew(ring_len=1)
-        if key == "fss1":
-            ret.extend(
-                [
-                    ic.eval(
-                        self.id, GroupElement(v, FSS_INPUT_LEN), self.circuit[key][i]
-                    )
-                    for i, v in enumerate(maskVal_vec)
-                ]
-            )
-        elif key == "fss2":
-            for i, v in enumerate(maskVal_vec):
-                ret.extend(
-                    [
-                        bytes(
-                            ic.eval(
-                                self.FSS2Key[i].id,
-                                GroupElement(v, FSS_INPUT_LEN),
-                                self.FSS2Key[i].key,
-                            ).packData()
-                        )
-                    ]
+        ic = ICNew(ring_len=AUTHENTICATED_BITS)
+        for i in range(2):
+            ret.append(
+                ic.eval(
+                    self.id, GroupElement(maskVal, FSS_INPUT_LEN), self.circuit[key][i]
                 )
-                self.trapProof += self.FSS2Key[i].CW_payload
-
+            )
         return ret
 
     # AB-Ab-Ba+ab input_calculation & auth_calculation
     def innerProductWithMulOut(self, keys):
-        out_share = []
-        auth_out_share = []
+        out_share = None
         # secret input calculation, and authenticated version
         for i in range(2):
             ret = []
-            if i == 0:
+            if i == 0:  # Compute normal SS
                 if self.id == 0:
                     ret = vec_mul(self.in_wire1, self.in_wire0, AUTHENTICATED_MODULO)
                 else:
                     ret = [0] * len(self.in_wire0)
-            else:
+            else:  # Compute on authenticated SS
                 array = vec_mul(self.in_wire1, self.in_wire0, AUTHENTICATED_MODULO)
                 alphas = [self.circuit["alpha"]] * len(self.in_wire0)
                 ret = vec_mul(array, alphas, AUTHENTICATED_MODULO)
@@ -278,13 +181,12 @@ class Server:
             for v in ret:
                 sum = ring_add(sum, v, AUTHENTICATED_MODULO)
 
-            for v in self.circuit[keys[3]]:
-                new_sum = ring_add(sum, v[i], AUTHENTICATED_MODULO)
-                if i == 0:
-                    out_share.append(new_sum)
-                else:
-                    auth_out_share.append(new_sum)
-        self.authen.extend(auth_out_share)
+            # Process with random output wire
+            new_sum = ring_add(sum, self.circuit[keys[3]][i], AUTHENTICATED_MODULO)
+            if i == 0:
+                out_share = new_sum
+            else:
+                self.authen.append(new_sum)
         return out_share
 
     # AB-Ab-Ba+ab input_calculation & auth_calculation
@@ -338,18 +240,26 @@ class Server:
 
     def getFirstRoundMessage(self):
         self.resetInputWires(self.vec_s, self.vec_v)
-        ipRet = self.innerProductWithMulOut(["in_s", "in_v", "s_v", "ip_out"])
+        ipRet = self.innerProductWithMulOut(
+            ["in_s", "in_v", "s_v", "ip_out"]
+        )  # first authen share
 
         self.resetInputWires(self.vec_s, self.vec_s)
-        ssRet = self.onInnerProductGate(["in_s", "in_s", "s_s", "ss_out"])
+        ssRet = self.onInnerProductGate(
+            ["in_s", "in_s", "s_s", "ss_out"]
+        )  # second authen share
 
         self.resetInputWires(self.vec_v, self.vec_v)
-        vvRet = self.onInnerProductGate(["in_v", "in_v", "v_v", "vv_out"])
+        vvRet = self.onInnerProductGate(
+            ["in_v", "in_v", "v_v", "vv_out"]
+        )  # third authen share
         return [ipRet, ssRet, vvRet]
 
     def getFinalMac(self, rand_vec, all_partial):
         left, right = 0, 0
         amount = len(rand_vec)
+
+        # print("Debug: the size of self.authen is: ", len(self.authen))
 
         left_vec = vec_mul(rand_vec, self.authen, AUTHENTICATED_MODULO)
         right_vec = vec_mul(rand_vec, all_partial, AUTHENTICATED_MODULO)
@@ -382,21 +292,22 @@ async def async_main(_id):
 
     all_online_time = 0
 
+    # index = BENCHMARK_TEST_INDEX
     for index in range(BENCHMARK_TESTS_AMOUNT):
         server = Server(_id)
 
         # For Mac-check use
         all_partial_reveals = []
 
-        # Offline
-        rand_vec = [
-            secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)
-        ]
+        rand_vec = [secrets.randbits(ALPHA_BITS_LEN) for i in range(RAND_VEC_LEN)]
 
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         share = None
         parent_location = Path(__file__).resolve().parent.parent
-        with open(parent_location / ("data/offline.pkl" + str(_id)), "rb") as file:
+        with open(
+            parent_location / ("data/offline.pkl" + str(_id) + "-" + str(index)),
+            "rb",
+        ) as file:
             share = pickle.load(file)
         server.receiveCircuit(share)
 
@@ -405,7 +316,6 @@ async def async_main(_id):
         mShares = server.getFirstRoundMessage()
         # print("mShares: ",mShares)
 
-        print("Debug-0")
         if _id == 0:
             otherShares = await pool.recv("server")
             pool.asend("server", mShares)
@@ -413,51 +323,121 @@ async def async_main(_id):
             pool.asend("server", mShares)
             otherShares = await pool.recv("server")
 
-        print("Debug-1")
-
-        ipReveals = [
-            ring_add(a, b, AUTHENTICATED_MODULO)
-            for (a, b) in zip(mShares[0], otherShares[0])
-        ]
-        ipWire = ipReveals[0]  # Use first one for following computation
-
+        ipWire = ring_add(mShares[0], otherShares[0], AUTHENTICATED_MODULO)
         ssWire = ring_add(mShares[1], otherShares[1], AUTHENTICATED_MODULO)
         vvWire = ring_add(mShares[2], otherShares[2], AUTHENTICATED_MODULO)
 
-        all_partial_reveals.extend(ipReveals)
+        all_partial_reveals.append(ipWire)
         all_partial_reveals.append(ssWire)
         all_partial_reveals.append(vvWire)
+
+        if BENCHMARK_TEST_CORRECTNESS:
+            print("Debug-ipWire is: ", ipWire)
+
         ################# Round-1 #################
 
         ################# Round-2 #################
+        c1_share_pair = server.onFssCmp(ipWire, "fss1")
         mTruncShare = server.sub_Truncate_Fss(ipWire, ssWire, vvWire)
-        # c1Arr = [ v.getValue() for v in server.onFssCmp(ipReveals,"fss1") ]
-        sk_Keys = []
-        c1Arr = server.onFssCmp(ipReveals, "fss1")
-        for j, c1 in enumerate(c1Arr):
-            sk_Keys.append(server.getFSS2SK(j, c1))
 
         if _id == 0:
-            pool.asend("server", [mTruncShare, sk_Keys])
-            otherTruncShare, otherSk_Keys = await pool.recv("server")
+            pool.asend("server", mTruncShare)
+            otherTruncShare = await pool.recv("server")
         else:
-            otherTruncShare, otherSk_Keys = await pool.recv("server")
-            await pool.send("server", [mTruncShare, sk_Keys])
+            otherTruncShare = await pool.recv("server")
+            await pool.send("server", mTruncShare)
 
-        finalReveals = [
-            ring_add(a, b, AUTHENTICATED_MODULO)
-            for (a, b) in zip(mTruncShare, otherTruncShare)
-        ]
-        all_partial_reveals.extend(finalReveals)
-        server.decryptFSS2Key(otherSk_Keys)
+        reveal4_fss2 = ring_add(
+            mTruncShare, otherTruncShare, AUTHENTICATED_MODULO
+        )  # fourth authen share
 
-        finalFssMask = [int(a / TRUNCATE_FACTOR) for a in finalReveals]
-        maskEval_shares = server.onFssCmp(finalFssMask, "fss2")
+        all_partial_reveals.append(reveal4_fss2)
+        finalFssMask = int(reveal4_fss2 / TRUNCATE_FACTOR)
+        c2_share_pair = server.onFssCmp(finalFssMask, "fss2")
+        ################# Round-2 #################
+
+        ################# Round-3 #################
+
+        if BENCHMARK_TEST_CORRECTNESS:
+            m_share = c1_share_pair[0].getValue()
+            if _id == 0:
+                pool.asend("server", m_share)
+                otherShare = await pool.recv("server")
+            else:
+                otherShare = await pool.recv("server")
+                await pool.send("server", m_share)
+            print("Debug-c1 is: ", ring_add(m_share, otherShare, AUTHENTICATED_MODULO))
+
+        c1_share = ring_add(
+            c1_share_pair[0].getValue(),
+            server.get_circuitVal("beaver_a")[0],
+            AUTHENTICATED_MODULO,
+        )
+        c2_share = ring_add(
+            c2_share_pair[0].getValue(),
+            server.get_circuitVal("beaver_b")[0],
+            AUTHENTICATED_MODULO,
+        )
+
+        server.pushNewAuthenShare(
+            ring_add(
+                c1_share_pair[1].getValue(),
+                server.get_circuitVal("beaver_a")[1],
+                AUTHENTICATED_MODULO,
+            )
+        )
+        server.pushNewAuthenShare(
+            ring_add(
+                c2_share_pair[1].getValue(),
+                server.get_circuitVal("beaver_b")[1],
+                AUTHENTICATED_MODULO,
+            )
+        )
+
+        if _id == 0:
+            pool.asend("server", [c1_share, c2_share])
+            otherShares = await pool.recv("server")
+        else:
+            otherShares = await pool.recv("server")
+            await pool.send("server", [c1_share, c2_share])
+        c1_wire = ring_add(c1_share, otherShares[0], AUTHENTICATED_MODULO)
+        c2_wire = ring_add(c2_share, otherShares[1], AUTHENTICATED_MODULO)
+
+        # fifth authen share
+        all_partial_reveals.append(c1_wire)
+
+        # sixth authen share
+        all_partial_reveals.append(c2_wire)
+
+        server.resetInputWires(c1_wire, c2_wire)
+
+        output_shares = server.onMulGate(["beaver_a", "beaver_b", "beaver_c"])
+        ################# Round-3 #################
 
         # Mac-Verification
         partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
-        ################# Round-2 #################
         all_online_time += time.time() - start_time
+
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_output = await pool.recv("server")
+                await pool.send("server", output_shares[0])
+            else:
+                await pool.send("server", output_shares[0])
+                other_output = await pool.recv("server")
+
+            final_output = ring_add(
+                output_shares[0], other_output, AUTHENTICATED_MODULO
+            )
+
+            print("The final result is: ", final_output)
+
+            if ALL_RESULTS[index] == final_output:
+                print(f"By {index} it is a success!!")
+                # TRUE_POSITIVE+=1
+                # correctIndexes.append(index)
+            else:
+                print(f"By {index} it is a mismatch.")
 
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )

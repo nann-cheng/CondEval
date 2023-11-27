@@ -30,7 +30,7 @@ TRUE_POSITIVE = 0
 
 start_time = time.time()
 BENCHMARK_TESTS_AMOUNT = SAMPLE_NUM
-BENCHMARK_TESTS_AMOUNT = 10
+BENCHMARK_TESTS_AMOUNT = 20
 for index in range(BENCHMARK_TESTS_AMOUNT):
     vec_s = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index + 1]])
     vec_v = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index]])
@@ -46,6 +46,9 @@ for index in range(BENCHMARK_TESTS_AMOUNT):
     right = right * vv
     # print("right-track: ",right)
     c2 = left - right >= 0
+
+    print("c2: ", index, c2, "\n")
+
     c = c1 and c2
 
     # print("right-track: ",binaryLen(right))

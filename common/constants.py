@@ -25,7 +25,6 @@ SAMPLE_NUM = len(ALL_RESULTS)
 # Each element within the input vector is represented in 64 bits
 INPUT_BITS_LEN = 64
 
-
 """
 Parameter used in the semi-honest protocol:
 """
@@ -109,6 +108,9 @@ CIRCUIT_TOPOLOGY_4_NAIVE_SEMI_HONEST = [
     "extraBeaver",
 ]
 
+
+
+
 TRUNCATE_FACTOR = 1 << 32
 CONVERSION_FACTOR = 1 << 8
 
@@ -124,12 +126,7 @@ FSS_TYPES = [0 for i in range(FSS_AMOUNT)]
 # Due to this specified circuit, the required random number amount be like following
 MAC_CHECK_RAND_AMOUNT = 2 * FSS_AMOUNT + 2
 
-
-import random, secrets
-
 # ALPHA_VALUE = secrets.randbits(ALPHA_BITS_LEN)
-
-MAC_RAND_VEC = [secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)]
 
 
 """
@@ -139,6 +136,7 @@ BENCHMARK_NETWORK_PORTS = ["61001", "61002"]
 BENCHMARK_IPS = ["127.0.0.1", "127.0.0.1"]
 # NETWORK_BANK_PORT = "60000"
 # NETWORK_CLIENT_PORT = "60005"
-BENCHMARK_TESTS_AMOUNT = 1
+BENCHMARK_TESTS_AMOUNT = 10
+# BENCHMARK_TEST_INDEX = 9
 
 BENCHMARK_TEST_CORRECTNESS = True

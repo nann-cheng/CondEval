@@ -142,10 +142,17 @@ class DCFKey(object):
         self.CW_List = []
         self.CW_payload = 0
 
+        # self.is_support_Authen = support_Authen
+        # if support_Authen:
+        #     self.CW_payload_auth = 0
+
     def packData(self):
         binary = bytearray(self.seed.to_bytes(FSS_SEC_PARA_BYTE_LEN, "big"))
 
         binary.extend(bytearray(self.CW_payload.packData()))
+
+        # if self.is_support_Authen:
+        #     binary.extend(bytearray(self.CW_payload_auth.packData()))
 
         # Allow for at most 2**16 size
         cw_size = len(self.CW_List)
@@ -184,7 +191,7 @@ class DCFKey(object):
 
 class DCF:
     """
-    A DCF instantiation input output ring length, a given alpha value, output payload beta
+    A DCF instantiation input/output ring length, a given alpha value, output payload beta
     This functions returns DCF Key for if input < x, payload = 1 currently
     :param x:
     :param inverse: Keep False for unsigned comparison, keep None for signed comparison.
@@ -403,7 +410,6 @@ class DCF:
 
         return out
 
-
 class NewICKey(object):
     """
     cw_payload0: a arithmetical secret sharing of beta
@@ -437,7 +443,6 @@ class NewICKey(object):
         icKey.dcf_key = DCFKey.unpack(binary[bytes_amount_per_cw * 2 :], ring_len)
         return icKey
 
-
 class ICNew:
     """
     Interval Containment Test:
@@ -449,13 +454,9 @@ class ICNew:
         self.sec_para = sec_para
         self.ring_len = ring_len
 
-    def keyGen(self, seed, inputLen, b1, b2=None):
-        beta = GroupElement(0, self.ring_len)
-        addtional_payload = GroupElement(0, self.ring_len)
-
+    def keyGen(self, seed, inputLen, b1, b2=None, given_rand=None):
         if b2 is not None:
             beta = b1 - b2
-            # addtional_payload = b2
         else:
             beta = b1
 
@@ -463,7 +464,11 @@ class ICNew:
         cw0_0 = GroupElement(sampleBits(None, self.ring_len), self.ring_len)
         cw0_1 = beta - cw0_0
 
-        r_in = GroupElement(sampleBits(None, inputLen), inputLen)
+        if given_rand is not None:
+            r_in = GroupElement(given_rand, inputLen)
+        else:
+            r_in = GroupElement(sampleBits(None, inputLen), inputLen)
+
         r_in0 = GroupElement(sampleBits(None, inputLen), inputLen)
         r_in1 = r_in - r_in0
 
@@ -484,11 +489,9 @@ class ICNew:
         scale += 1 if alpha_q_prime.getValue() > ((1 << (inputLen - 1)) + 1) else 0
         scale += 1 if alpha_q.getValue() == ((1 << inputLen) - 1) else 0
 
-        # print("scale is: ",scale)
         scale *= beta.getValue()
         # To achieve general form of b1,b2 output
-        cw_payload = GroupElement(scale, self.ring_len) + addtional_payload
-
+        cw_payload = GroupElement(scale, self.ring_len)
         k0 = NewICKey()
         k0.CW_0 = cw0_0
         k0.dcf_key = dcfk0
@@ -498,7 +501,6 @@ class ICNew:
         k1.CW_0 = cw0_1
         k1.dcf_key = dcfk1
         k1.CW_1 = cw_payload - k0.CW_1
-
         return r_in0, r_in1, k0, k1
 
     # Start the online evaluation phase
@@ -519,18 +521,17 @@ class ICNew:
         scale -= 1 if zeta.getValue() > ((1 << (inputLen - 1)) + 1) else 0
 
         # print("eval scale is: ",scale)
-
-        scale *= key.CW_0.getValue()
-        out = GroupElement(scale, self.ring_len)
+        out = GroupElement(scale * key.CW_0.getValue(), self.ring_len)
 
         x_p = zeta + GroupElement((1 << inputLen) - 1, inputLen)
         x_q_prime = zeta + GroupElement((1 << (inputLen - 1)) - 2, inputLen)
+        dcf_out = GroupElement(0, self.ring_len)
+        dcf_out -= dcf.eval(_id, x_p, key.dcf_key)
+        dcf_out += dcf.eval(_id, x_q_prime, key.dcf_key)
 
-        out -= dcf.eval(_id, x_p, key.dcf_key)
-        out += dcf.eval(_id, x_q_prime, key.dcf_key)
+        out += dcf_out
         out += key.CW_1
 
-        # print("One ICNew eval cost ",time.time() - start_)
         return out
 
 
