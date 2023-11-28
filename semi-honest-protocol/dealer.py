@@ -10,13 +10,11 @@ from libfss.fss import (
     FSS_RING_LEN,
     FSS_INPUT_LEN,
     FlexKey,
-    CondEval
+    CondEval,
 )
 from common.helper import *
 from common.constants import *
 import secrets
-
-
 
 
 import pickle
@@ -39,7 +37,7 @@ class SemiHonestFSS:
         random.seed(self.seed)
 
     """
-    Prepare FSS keys for the evaluation of c1
+    Prepare FSS keys for the evaluation of c1, TODO: 64-bits random value should be provided
     """
 
     def genFirstKey(self):
@@ -54,14 +52,18 @@ class SemiHonestFSS:
 
     def genSecondKey(self):
         ic = ICNew(sec_para=self.sec_para, ring_len=self.ring_len)
-        r0, r1, k0, k1 = ic.keyGen(self.seed, FSS_INPUT_LEN, GroupElement(1, 1))
-        results = CondEval.genFromFssKeys([k0.packData(), k1.packData()])
+        fss2_whole_rValue = secrets.randbits(INPUT_BITS_LEN)
+        truncated_fss2_rand = int(fss2_whole_rValue / TRUNCATE_FACTOR)
+        r0, r1, k0, k1 = ic.keyGen(
+            self.seed, FSS_INPUT_LEN, GroupElement(1, 1), given_rand=truncated_fss2_rand
+        )
+        ck0, ck1 = CondEval.genFromFssKeys([k0.packData(), k1.packData()])
 
         # r_Array = [r0, r1]
         # r_value,cipher,sk
-        player0 = [r0, results[0][0], results[0][1]]
-        player1 = [r1, results[1][0], results[1][1]]
-        return player0, player1
+        player0 = [r0, ck0[0], ck0[1]]
+        player1 = [r1, ck1[0], ck1[1]]
+        return (fss2_whole_rValue, player0, player1)
 
 
 class Dealer:
@@ -72,6 +74,7 @@ class Dealer:
 
     def __init__(self, index):
         """Instantiate PRFs to generate random offset"""
+        self._index = index
         self.fss = SemiHonestFSS(seed=1234127)
         self.vec_s = convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index + 1]])
         self.vec_v = convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index]])
@@ -115,12 +118,9 @@ class Dealer:
         # fss1keys.append((v2Bin, v3Bin))
 
         ################The 2nd fss offset preparation#################
-        player0, player1 = self.fss.genSecondKey()
-        r_value = player0[0] + player1[0]
-        # r_mul = ring_mul(r_value.getValue(), TRUNCATE_FACTOR, SEMI_HONEST_MODULO)
-        r_mul_out = self.gen_SS_with_Val(
-            ring_mul(r_value.getValue(), TRUNCATE_FACTOR, SEMI_HONEST_MODULO)
-        )
+
+        all_rValue,player0, player1 = self.fss.genSecondKey()
+        r_mul_out = self.gen_SS_with_Val( all_rValue)
 
         fss2keys = [player0, player1]
         #################The 2nd fss offset preparation#################
@@ -148,7 +148,7 @@ class Dealer:
                 [v[_start] for v in s_s],
                 [v[_start] for v in v_v],
                 ip_out[_start],
-                #fss key
+                # fss key
                 fss1keys[i + 2],
                 ss_out[_start],
                 vv_out[_start],
@@ -161,7 +161,11 @@ class Dealer:
             ]
 
             parent_location = Path(__file__).resolve().parent.parent
-            with open(parent_location / ("data/offline.pkl" + str(i)), "wb") as file:
+            with open(
+                parent_location
+                / ("data/offline.pkl" + str(i) + "-" + str(self._index)),
+                "wb",
+            ) as file:
                 pickle.dump(server_correlated, file)
 
     def gen_SS_tuple(self, nbits, _len=None):
@@ -186,5 +190,6 @@ class Dealer:
 
 
 if __name__ == "__main__":
-    dealer = Dealer(0)
-    dealer.genOffline()
+    for i in range(BENCHMARK_TESTS_AMOUNT):
+        dealer = Dealer(i)
+        dealer.genOffline()

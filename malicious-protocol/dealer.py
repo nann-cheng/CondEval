@@ -167,6 +167,7 @@ class Dealer:
     def __init__(self, index):
         """Instantiate PRFs to generate random alpha and random offset"""
 
+        self._index = index
         # v = ALPHA_VALUE
         v = secrets.randbits(ALPHA_BITS_LEN)
         v0 = secrets.randbits(AUTHENTICATED_BITS)
@@ -301,10 +302,15 @@ class Dealer:
             ]
 
             parent_location = Path(__file__).resolve().parent.parent
-            with open(parent_location / ("data/offline.pkl" + str(i)), "wb") as file:
+            with open(
+                parent_location
+                / ("data/offline.pkl" + str(i) + "-" + str(self._index)),
+                "wb",
+            ) as file:
                 pickle.dump(server_correlated, file)
 
 
 if __name__ == "__main__":
-    dealer = Dealer(0)
-    dealer.genOffline()
+    for i in range(BENCHMARK_TESTS_AMOUNT):
+        dealer = Dealer(i)
+        dealer.genOffline()

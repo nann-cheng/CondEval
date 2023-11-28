@@ -142,14 +142,17 @@ class Server:
         return (x_mask, y_mask)
 
     def getMulShare(self, sigma_x, sigma_y, modular):
-        ret = sigma_x * sigma_y
+        if self.id == 0:
+            ret = sigma_x * sigma_y
+        else:
+            ret = 0
         ret = mod_sub(ret, sigma_x * self.circuit["extraBeaver"][1], modular)
         ret = mod_sub(ret, sigma_y * self.circuit["extraBeaver"][0], modular)
         ret = ring_add(ret, self.circuit["extraBeaver"][2], modular)
         return ret
 
 
-async def async_main(_id, index):
+async def async_main(_id):
     # Create the pool for current server.
     pool = Pool()
     pool.add_http_server(addr=BENCHMARK_IPS[_id], port=BENCHMARK_NETWORK_PORTS[_id])
@@ -159,93 +162,101 @@ async def async_main(_id, index):
     # pool.add_http_client("bank", addr="127.0.0.1", port=NETWORK_BANK_PORT)
 
     all_online_time = 0
+    for index in range(BENCHMARK_TESTS_AMOUNT):
+        server = Server(_id)
+        # Step-2: secure computation, Locally load prepared pickle data in setup phase
+        parent_location = Path(__file__).resolve().parent.parent
+        with open(
+            parent_location / ("data/offline.pkl" + str(_id) + "-" + str(index)), "rb"
+        ) as file:
+            share = pickle.load(file)
+            server.receiveCircuit(share)
 
-    server = Server(_id)
-    # Step-2: secure computation, Locally load prepared pickle data in setup phase
-    parent_location = Path(__file__).resolve().parent.parent
-    with open(parent_location / ("data/offline.pkl" + str(_id)), "rb") as file:
-        share = pickle.load(file)
-        server.receiveCircuit(share)
+        start_time = time.time()
+        ################# Round-1 #################
+        mShares = server.getFirstRoundMessage()
 
-    start_time = time.time()
-    ################# Round-1 #################
-    mShares = server.getFirstRoundMessage()
-    # print("mShares: ", mShares)
-
-    print("Debug-0")
-    if _id == 0:
-        otherShares = await pool.recv("server")
-        pool.asend("server", mShares)
-    else:
-        pool.asend("server", mShares)
-        otherShares = await pool.recv("server")
-
-    ipWire = ring_add(mShares[0], otherShares[0], SEMI_HONEST_MODULO)
-    ssWire = ring_add(mShares[1], otherShares[1], SEMI_HONEST_MODULO)
-    vvWire = ring_add(mShares[2], otherShares[2], SEMI_HONEST_MODULO)
-    ################# Round-1 #################
-
-    ################# Round-2 #################
-    mTruncShare = server.sub_Truncate_Fss(ipWire, ssWire, vvWire)
-    c1 = server.onFssCmp("fss1", ipWire)
-
-    if BENCHMARK_TEST_CORRECTNESS:
         if _id == 0:
-            other_c1 = await pool.recv("server")
-            await pool.send("server", c1)
+            otherShares = await pool.recv("server")
+            pool.asend("server", mShares)
         else:
-            await pool.send("server", c1)
-            other_c1 = await pool.recv("server")
+            pool.asend("server", mShares)
+            otherShares = await pool.recv("server")
 
-        final_c1 = ring_add(c1, other_c1, 2)
-        print(f"Debug- c1 by {index} is {final_c1}")
+        ipWire = ring_add(mShares[0], otherShares[0], SEMI_HONEST_MODULO)
+        ssWire = ring_add(mShares[1], otherShares[1], SEMI_HONEST_MODULO)
+        vvWire = ring_add(mShares[2], otherShares[2], SEMI_HONEST_MODULO)
+        ################# Round-1 #################
 
-    if _id == 0:
-        otherTruncShare = await pool.recv("server")
-        pool.asend("server", mTruncShare)
-    else:
-        pool.asend("server", mTruncShare)
-        otherTruncShare = await pool.recv("server")
+        ################# Round-2 #################
+        mTruncShare = server.sub_Truncate_Fss(ipWire, ssWire, vvWire)
+        c1 = server.onFssCmp("fss1", ipWire)
 
-    finalReveal = ring_add(mTruncShare, otherTruncShare, SEMI_HONEST_MODULO)
-    finalReveal = GroupElement(int(finalReveal / TRUNCATE_FACTOR), INPUT_BITS_LEN)
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_c1 = await pool.recv("server")
+                await pool.send("server", c1)
+            else:
+                await pool.send("server", c1)
+                other_c1 = await pool.recv("server")
 
-    # TODO: FSS2 evaluation is not as expected, why?
-    c2 = server.onFssCmp("fss2", finalReveal.getValue())
+            final_c1 = ring_add(c1, other_c1, 2)
+            # print(f"Debug- c1 by {index} is {final_c1}")
 
-    ################# Round-3 #################
-    # Manually mainpulate beaver's triple for a multiplication of two boolean secret sharing
-    rets = server.getBeaverMasks(c1, c2, 2)
-
-    if _id == 0:
-        other_Rets = await pool.recv("server")
-        await pool.send("server", rets)
-    else:
-        await pool.send("server", rets)
-        other_Rets = await pool.recv("server")
-
-    rets_reveal = vec_add(rets, other_Rets, 2)
-    output_share = server.getMulShare(rets_reveal[0], rets_reveal[1], 2)
-
-    if BENCHMARK_TEST_CORRECTNESS:
         if _id == 0:
-            other_output = await pool.recv("server")
-            await pool.send("server", output_share)
+            otherTruncShare = await pool.recv("server")
+            pool.asend("server", mTruncShare)
         else:
-            await pool.send("server", output_share)
-            other_output = await pool.recv("server")
+            pool.asend("server", mTruncShare)
+            otherTruncShare = await pool.recv("server")
 
-        final_output = ring_add(output_share, other_output, 2)
+        finalReveal = ring_add(mTruncShare, otherTruncShare, SEMI_HONEST_MODULO)
+        finalReveal = GroupElement(int(finalReveal / TRUNCATE_FACTOR), FSS_INPUT_LEN)
 
-        if ALL_RESULTS[index] == final_output:
-            print(f"By {index} it is a success.")
-            # TRUE_POSITIVE+=1
-            # correctIndexes.append(index)
+        c2 = server.onFssCmp("fss2", finalReveal.getValue())
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_c2 = await pool.recv("server")
+                await pool.send("server", c2)
+            else:
+                await pool.send("server", c2)
+                other_c2 = await pool.recv("server")
+
+            final_c2 = ring_add(c2, other_c2, 2)
+            # print(f"Debug- c2 by {index} is {final_c2}")
+
+        ################# Round-3 #################
+        # Manually mainpulate beaver's triple for a multiplication of two boolean secret sharing
+        rets = server.getBeaverMasks(c1, c2, 2)
+        if _id == 0:
+            other_Rets = await pool.recv("server")
+            await pool.send("server", rets)
         else:
-            print(f"By {index} it is a mismatch.")
+            await pool.send("server", rets)
+            other_Rets = await pool.recv("server")
+
+        rets_reveal = vec_add(rets, other_Rets, 2)
+        output_share = server.getMulShare(rets_reveal[0], rets_reveal[1], 2)
 
         ################# Round-2 #################
         all_online_time += time.time() - start_time
+        
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_output = await pool.recv("server")
+                await pool.send("server", output_share)
+            else:
+                await pool.send("server", output_share)
+                other_output = await pool.recv("server")
+
+            final_output = ring_add(output_share, other_output, 2)
+
+            if ALL_RESULTS[index] == final_output:
+                print(f"By {index} success.")
+                # TRUE_POSITIVE+=1
+                # correctIndexes.append(index)
+            else:
+                print(f"By {index} mismatch.")
 
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )
@@ -256,6 +267,5 @@ async def async_main(_id, index):
 
 if __name__ == "__main__":
     _id = int(sys.argv[1])
-    _index = int(sys.argv[2])
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(async_main(_id, _index))
+    loop.run_until_complete(async_main(_id))

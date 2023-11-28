@@ -81,7 +81,7 @@ CIRCUIT_TOPOLOGY_4_SEMI_HONEST = [
     "vv_out",  # ss, vv inner product output wire random offset
     "ip2",
     "sv_mul",  # Associated beaver's triple for previous output offsets
-    "sub_Truncate",  # The random offsets associated with truncation & fss2 random offset
+    "sub_Truncate",  # The random offsets associated with truncation/fss2 random offset
     "fss2",
 ]
 
@@ -136,7 +136,5 @@ BENCHMARK_NETWORK_PORTS = ["61001", "61002"]
 BENCHMARK_IPS = ["127.0.0.1", "127.0.0.1"]
 # NETWORK_BANK_PORT = "60000"
 # NETWORK_CLIENT_PORT = "60005"
-BENCHMARK_TESTS_AMOUNT = 10
-# BENCHMARK_TEST_INDEX = 9
-
+BENCHMARK_TESTS_AMOUNT = 5
 BENCHMARK_TEST_CORRECTNESS = True

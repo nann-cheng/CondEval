@@ -29,8 +29,8 @@ correctIndexes = []
 TRUE_POSITIVE = 0
 
 start_time = time.time()
-BENCHMARK_TESTS_AMOUNT = SAMPLE_NUM
-BENCHMARK_TESTS_AMOUNT = 20
+# BENCHMARK_TESTS_AMOUNT = SAMPLE_NUM
+# BENCHMARK_TESTS_AMOUNT = 20
 for index in range(BENCHMARK_TESTS_AMOUNT):
     vec_s = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index + 1]])
     vec_v = plain_convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index]])

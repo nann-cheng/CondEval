@@ -107,7 +107,7 @@ def NewIC_test(val):
 
     AUTHENTICATED_BITS = 96
     inputLen = 32
-    
+
     ic = ICNew(ring_len=AUTHENTICATED_BITS)
     beta = GroupElement(200, AUTHENTICATED_BITS)
     r0, r1, k0, k1 = ic.keyGen(seed, inputLen, beta)
@@ -120,8 +120,30 @@ def NewIC_test(val):
 
     # v0.selfPrint()
     # v1.selfPrint()
-    ret = (v0+v1).getValue()
-    
+    ret = (v0 + v1).getValue()
+    return ret
+
+
+def CondEval_test(val):
+    from fss import ICNew, GroupElement, CondEval
+
+    inputLen = 32
+    ic = ICNew(ring_len=1)
+    r0, r1, k0, k1 = ic.keyGen(seed, inputLen, GroupElement(1, 1))
+    ck0, ck1 = CondEval.genFromFssKeys([k0.packData(), k1.packData()])
+
+    m_CondEval0 = CondEval(1, ck0[0], ck0[1])
+    m_CondEval1 = CondEval(1, ck1[0], ck1[1])
+    decKey0 = m_CondEval0.getDecryptionKey(0)
+    decKey1 = m_CondEval1.getDecryptionKey(0)
+
+    zeta = GroupElement(val, inputLen)
+    zeta += r0
+    zeta += r1
+    v0 = m_CondEval0.evaluate(decKey1, zeta)
+    v1 = m_CondEval1.evaluate(decKey0, zeta)
+
+    ret = (v0 + v1).getValue()
     return ret
 
 
@@ -137,9 +159,11 @@ for i in range(10):
         print("negative", (1 << 32) - val)
         realCmp = 0
 
-    cmpRet = NewIC_test(val)
+    # cmpRet = NewIC_test(val)
+    cmpRet = CondEval_test(val)
 
-    expected_Result = realCmp * 200
+    # expected_Result = realCmp * 200
+    expected_Result = 0
     if expected_Result != cmpRet:
         print(
             i,

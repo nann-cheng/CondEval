@@ -99,6 +99,13 @@ class GroupElement(object):
     def getValue(self):
         return self.value
 
+    def getSingedValue(self):
+        negative = self.value >> (self.bitlen - 1)
+        if negative:
+            return -(2**self.bitlen - self.value)
+        else:
+            return self.value
+
     def packData(self):
         byteLen = int((self.bitlen + 7) / 8)
         # print("byteLen is: ",byteLen)
@@ -410,6 +417,7 @@ class DCF:
 
         return out
 
+
 class NewICKey(object):
     """
     cw_payload0: a arithmetical secret sharing of beta
@@ -442,6 +450,7 @@ class NewICKey(object):
         )
         icKey.dcf_key = DCFKey.unpack(binary[bytes_amount_per_cw * 2 :], ring_len)
         return icKey
+
 
 class ICNew:
     """
@@ -596,7 +605,7 @@ class CondEval(object):
             C1 = [m1_1, m1_0]
         SK_0 = ((sk1_0, sk1_1), p1)
         SK_1 = ((sk0_0, sk0_1), p0)
-
+        # Ciphertext and secret key pair
         return [(C0, SK_0), (C1, SK_1)]
 
     """
@@ -623,19 +632,14 @@ class CondEval(object):
         Output:
             a byte_array object (will be sent to the other party)
     """
-
     def evaluate(self, other, ring_ele):
-        # print("other type is: ", type(other))
-        # print("other is: ", other)
         p = int.from_bytes(other[:1], "big")
         cipher = self.cipher[p]
         decrypted = byteArrayXor(cipher, other[1:])
-
         id = int.from_bytes(decrypted[-1:], "big")
         icKey = NewICKey.unpack(decrypted[:-1], self.ring_len)
         ic = ICNew(ring_len=1)
         return ic.eval(id, ring_ele, icKey)
-
 
 class FlexKey(object):
     """

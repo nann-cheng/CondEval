@@ -85,7 +85,10 @@ class Server:
         self.sub_shares[0] = ring_mul(A_SCALE, self.sub_shares[0], SEMI_HONEST_MODULO)
         self.sub_shares[1] = ring_mul(B_SCALE, self.sub_shares[1], SEMI_HONEST_MODULO)
         sub = mod_sub(self.sub_shares[0], self.sub_shares[1], SEMI_HONEST_MODULO)
-        return ring_add(sub, self.circuit["sub_Truncate"], SEMI_HONEST_MODULO)
+        sub = ring_add(sub, self.circuit["sub_Truncate"], SEMI_HONEST_MODULO)
+
+        return sub
+        # return self.circuit["sub_Truncate"]
 
     def evalFSS2(self, otherSk, revealVal):
         return self.m_CondEval.evaluate(otherSk, revealVal)
@@ -162,16 +165,16 @@ async def async_main(_id):
         server = Server(_id)
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         parent_location = Path(__file__).resolve().parent.parent
-        with open(parent_location / ("data/offline.pkl" + str(_id)), "rb") as file:
+
+        with open(
+            parent_location / ("data/offline.pkl" + str(_id) + "-" + str(index)), "rb"
+        ) as file:
             share = pickle.load(file)
             server.receiveCircuit(share)
 
         start_time = time.time()
         ################# Round-1 #################
         mShares = server.getFirstRoundMessage()
-        # print("mShares: ", mShares)
-
-        print("Debug-0")
         if _id == 0:
             otherShares = await pool.recv("server")
             pool.asend("server", mShares)
@@ -191,17 +194,35 @@ async def async_main(_id):
 
         if _id == 0:
             otherTruncShare, otherSk_Key = await pool.recv("server")
-            pool.asend("server", [mTruncShare, sk_Key])
+            pool.asend("server", (mTruncShare, sk_Key))
         else:
-            pool.asend("server", [mTruncShare, sk_Key])
+            pool.asend("server", (mTruncShare, sk_Key))
             otherTruncShare, otherSk_Key = await pool.recv("server")
 
         finalReveal = ring_add(mTruncShare, otherTruncShare, SEMI_HONEST_MODULO)
-        finalReveal = GroupElement(int(finalReveal / TRUNCATE_FACTOR), INPUT_BITS_LEN)
+        finalReveal = GroupElement(int(finalReveal / TRUNCATE_FACTOR), FSS_INPUT_LEN)
 
         output_share = server.evalFSS2(bytearray(otherSk_Key), finalReveal)
+        output_share = output_share.getValue()
         ################# Round-2 #################
         all_online_time += time.time() - start_time
+
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_output = await pool.recv("server")
+                await pool.send("server", output_share)
+            else:
+                await pool.send("server", output_share)
+                other_output = await pool.recv("server")
+
+            final_output = ring_add(output_share, other_output, 2)
+
+            if ALL_RESULTS[index] == final_output:
+                print(f"By {index} success.")
+                # TRUE_POSITIVE+=1
+                # correctIndexes.append(index)
+            else:
+                print(f"By {index} mismatch.")
 
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )

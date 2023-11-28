@@ -157,7 +157,7 @@ class Dealer:
 
         # IMPORTANT!! k0,k1 being ic keys
         ip_out = self.fss.getInputWires()[0]
-        print("Debug- ip_out is : ", ip_out[0])
+        # print("Debug- ip_out is : ", ip_out[0])
         ip_out = self.genTuple2(ip_out[0])
 
         ################The 2nd fss offset preparation#################

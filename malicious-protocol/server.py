@@ -370,6 +370,29 @@ class Server:
         # ret = GroupElement( mod_sub(left,right,AUTHENTICATED_MODULO), AUTHENTICATED_MODULO)
         return ret
 
+    def verifyFssResult(self, results):
+        ret = True
+        last = None
+        # Type 0 <-> normal keys
+        # Type 1 <-> trap keys
+        for i, _type in enumerate(FSS_TYPES):
+            if _type == 1:
+                if 0 != results[i]:
+                    ret = False
+                    break
+            else:
+                if last is None:
+                    last = results[i]
+                else:
+                    if results[i] != last:
+                        ret = False
+                        break
+        if ret:
+            return last
+        else:
+            print("Error: Returned results from the servers are inconsistent!")
+            return -1
+
 
 async def async_main(_id):
     # Create the pool for current server.
@@ -389,32 +412,33 @@ async def async_main(_id):
         all_partial_reveals = []
 
         # Offline
+        # rand_vec = [
+        #     secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)
+        # ]
+
         rand_vec = [
-            secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)
+            2 for i in range(MAC_CHECK_RAND_AMOUNT)
         ]
 
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         share = None
         parent_location = Path(__file__).resolve().parent.parent
-        with open(parent_location / ("data/offline.pkl" + str(_id)), "rb") as file:
+        with open(
+            parent_location / ("data/offline.pkl" + str(_id) + "-" + str(index)),
+            "rb",
+        ) as file:
             share = pickle.load(file)
         server.receiveCircuit(share)
 
         start_time = time.time()
         ################# Round-1 #################
         mShares = server.getFirstRoundMessage()
-        # print("mShares: ",mShares)
-
-        print("Debug-0")
         if _id == 0:
             otherShares = await pool.recv("server")
             pool.asend("server", mShares)
         else:
             pool.asend("server", mShares)
             otherShares = await pool.recv("server")
-
-        print("Debug-1")
-
         ipReveals = [
             ring_add(a, b, AUTHENTICATED_MODULO)
             for (a, b) in zip(mShares[0], otherShares[0])
@@ -458,6 +482,40 @@ async def async_main(_id):
         partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
         ################# Round-2 #################
         all_online_time += time.time() - start_time
+
+        if BENCHMARK_TEST_CORRECTNESS:
+            if _id == 0:
+                other_maskEval_shares, otherMac = await pool.recv("server")
+                await pool.send("server", (maskEval_shares, partialMac))
+            else:
+                await pool.send("server", (maskEval_shares, partialMac))
+                other_maskEval_shares, otherMac = await pool.recv("server")
+
+            evalResults0 = [
+                GroupElement.unpack(v, FSS_RING_LEN) for v in maskEval_shares
+            ]
+            evalResults1 = [
+                GroupElement.unpack(v, FSS_RING_LEN) for v in other_maskEval_shares
+            ]
+            evalResults = [
+                (a + b).getValue() for (a, b) in zip(evalResults0, evalResults1)
+            ]
+
+            mac_verify = ring_add(partialMac, otherMac, AUTHENTICATED_MODULO)
+            if mac_verify == 0:
+                # print("Mac Verification pass!\n\n")
+                lessThan = server.verifyFssResult(evalResults)
+                # print(lessThan)
+                # print("index is: ",index)
+                if ALL_RESULTS[index] == lessThan:
+                    # print("label: ",ALL_RESULTS[index],"  lessThan: ",lessThan)
+                    # TRUE_POSITIVE += 1
+                    # correctIndexes.append(index)
+                    print(f"By {index} success!!")
+                else:
+                    print(f"By {index} mismatch.")
+            else:
+                print("Mac Verification failed!\n\n")
 
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )

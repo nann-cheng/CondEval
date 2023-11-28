@@ -57,6 +57,7 @@ class Dealer:
 
     def __init__(self, index):
         """Instantiate PRFs to generate random offset"""
+        self._index = index
         self.fss = SemiHonestFSS(seed=1234127)
         self.vec_s = convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index + 1]])
         self.vec_v = convert_raw(ALL_DICT_DATA[ALL_LABELS[2 * index]])
@@ -119,7 +120,7 @@ class Dealer:
         """
         a_out = self.gen_SS_tuple(1)
         b_out = self.gen_SS_tuple(1)
-        ab_product = self.gen_SS_with_Val(ring_mul(a_out[0], b_out[0], 1), 1)
+        ab_product = self.gen_SS_with_Val(ring_mul(a_out[0], b_out[0], 2), 1)
         extra_beaver = []
         for i in [1, 2]:
             tmp = [a_out[i], b_out[i], ab_product[i]]
@@ -153,7 +154,10 @@ class Dealer:
             ]
 
             parent_location = Path(__file__).resolve().parent.parent
-            with open(parent_location / ("data/offline.pkl" + str(i)), "wb") as file:
+            with open(
+                parent_location / ("data/offline.pkl" + str(i) + "-" + str(self._index)),
+                "wb",
+            ) as file:
                 pickle.dump(server_correlated, file)
 
     def gen_SS_tuple(self, nbits, _len=None):
@@ -179,7 +183,8 @@ class Dealer:
         v1 = mod_sub(val, v0, SEMI_HONEST_MODULO)
         return [val, v0, v1]
 
+
 if __name__ == "__main__":
-    index = int(sys.argv[1])
-    dealer = Dealer(index)
-    dealer.genOffline()
+    for i in range(BENCHMARK_TESTS_AMOUNT):
+        dealer = Dealer(i)
+        dealer.genOffline()

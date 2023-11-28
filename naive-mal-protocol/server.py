@@ -257,17 +257,21 @@ class Server:
 
     def getFinalMac(self, rand_vec, all_partial):
         left, right = 0, 0
-        amount = len(rand_vec)
+        checked_amount = len(all_partial)
 
-        # print("Debug: the size of self.authen is: ", len(self.authen))
-
-        left_vec = vec_mul(rand_vec, self.authen, AUTHENTICATED_MODULO)
-        right_vec = vec_mul(rand_vec, all_partial, AUTHENTICATED_MODULO)
+        left_vec = vec_mul(
+            rand_vec[:checked_amount],
+            self.authen[:checked_amount],
+            AUTHENTICATED_MODULO,
+        )
+        right_vec = vec_mul(
+            rand_vec[:checked_amount], all_partial, AUTHENTICATED_MODULO
+        )
 
         # print("left_vec",left_vec)
         # print("right_vec",right_vec)
 
-        for i in range(amount):
+        for i in range(checked_amount):
             left = ring_add(left, left_vec[i], AUTHENTICATED_MODULO)
             right = ring_add(right, right_vec[i], AUTHENTICATED_MODULO)
 
@@ -299,7 +303,8 @@ async def async_main(_id):
         # For Mac-check use
         all_partial_reveals = []
 
-        rand_vec = [secrets.randbits(ALPHA_BITS_LEN) for i in range(RAND_VEC_LEN)]
+        # rand_vec = [secrets.randbits(ALPHA_BITS_LEN) for i in range(RAND_VEC_LEN)]
+        rand_vec = [2 for i in range(RAND_VEC_LEN)]
 
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         share = None
@@ -330,10 +335,6 @@ async def async_main(_id):
         all_partial_reveals.append(ipWire)
         all_partial_reveals.append(ssWire)
         all_partial_reveals.append(vvWire)
-
-        if BENCHMARK_TEST_CORRECTNESS:
-            print("Debug-ipWire is: ", ipWire)
-
         ################# Round-1 #################
 
         ################# Round-2 #################
@@ -366,7 +367,7 @@ async def async_main(_id):
             else:
                 otherShare = await pool.recv("server")
                 await pool.send("server", m_share)
-            print("Debug-c1 is: ", ring_add(m_share, otherShare, AUTHENTICATED_MODULO))
+            # print("Debug-c1 is: ", ring_add(m_share, otherShare, AUTHENTICATED_MODULO))
 
         c1_share = ring_add(
             c1_share_pair[0].getValue(),
@@ -414,30 +415,34 @@ async def async_main(_id):
         output_shares = server.onMulGate(["beaver_a", "beaver_b", "beaver_c"])
         ################# Round-3 #################
 
-        # Mac-Verification
-        partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
         all_online_time += time.time() - start_time
 
+        # Mac-Verification
+        partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
         if BENCHMARK_TEST_CORRECTNESS:
             if _id == 0:
-                other_output = await pool.recv("server")
-                await pool.send("server", output_shares[0])
+                other_output, otherMac = await pool.recv("server")
+                await pool.send("server", (output_shares[0], partialMac))
             else:
-                await pool.send("server", output_shares[0])
-                other_output = await pool.recv("server")
+                await pool.send("server", (output_shares[0], partialMac))
+                other_output, otherMac = await pool.recv("server")
 
             final_output = ring_add(
                 output_shares[0], other_output, AUTHENTICATED_MODULO
             )
+            final_mac = ring_add(partialMac, otherMac, AUTHENTICATED_MODULO)
+            # print("Debug: other_mac is: ", otherMac)
+            if final_mac == 0:
+                # print("The final result is: ", final_output)
 
-            print("The final result is: ", final_output)
-
-            if ALL_RESULTS[index] == final_output:
-                print(f"By {index} it is a success!!")
-                # TRUE_POSITIVE+=1
-                # correctIndexes.append(index)
+                if ALL_RESULTS[index] == final_output:
+                    print(f"By {index} success!!")
+                    # TRUE_POSITIVE+=1
+                    # correctIndexes.append(index)
+                else:
+                    print(f"By {index} mismatch.")
             else:
-                print(f"By {index} it is a mismatch.")
+                print("Mac Verification failed!", final_mac)
 
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )
