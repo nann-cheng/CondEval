@@ -455,7 +455,6 @@ async def async_main(_id):
 
         ################# Round-2 #################
         mTruncShare = server.sub_Truncate_Fss(ipWire, ssWire, vvWire)
-        # c1Arr = [ v.getValue() for v in server.onFssCmp(ipReveals,"fss1") ]
         sk_Keys = []
         c1Arr = server.onFssCmp(ipReveals, "fss1")
         for j, c1 in enumerate(c1Arr):
