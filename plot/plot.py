@@ -2,19 +2,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
+
+addtional_bytes = 49
+
 # Sample data
-categories = ["(80ms, 50Mbit)", "(160ms, 40Mbit)", "(240ms, 30Mbit)"]
-group1_bottom = [3, 2, 5]
-group1_top = [2, 3, 4]
+categories = ["(10ms, 1Gbit)", "(80ms, 100Mbit)", "(240ms, 10Mbit)"]
+group1_bottom = [6, 9,  10]
+group1_top = [23,  142, 383]
 
-group2_bottom = [4, 7, 3]
-group2_top = [1, 2, 1]
+group2_bottom = [5, 9,9]
+group2_top = [15,  95,261]
 
-group3_bottom = [2, 3, 4]
-group3_top = [3, 2, 3]
+group3_bottom = [8, 17, 12]
+group3_top = [21,  136, 380]
 
-group4_bottom = [2, 3, 4]
-group4_top = [3, 2, 3]
+group4_bottom = [49, 66, 65]
+group4_top = [13,124, 308]
 
 # Number of categories
 n_categories = len(categories)
@@ -45,7 +48,7 @@ ax.bar(r4, group4_bottom, color='orange', width=bar_width, edgecolor='grey', hat
 ax.bar(r4, group4_top, color='orange', width=bar_width, edgecolor='grey', hatch='x', bottom=group4_bottom, label='Group 4 Top')
 
 # Adding labels
-ax.set_xlabel('Network setting', fontweight='bold')
+ax.set_xlabel('(Round time latency, bandwidth)', fontweight='bold')
 ax.set_ylabel('Online execution time (ms)', fontweight='bold')
 # ax.set_title('Grouped Stacked Bar Chart with Patterns Example')
 ax.set_xticks([r + 1.5*bar_width for r in range(n_categories)])
@@ -70,6 +73,6 @@ legend_elements2 = [
                    mpatches.Patch(hatch='x', facecolor='white', edgecolor='grey', label='communication time')]
 
 # Creating legend & showing the plot
-ax.legend(handles=legend_elements2, loc='upper right')
+ax.legend(handles=legend_elements2, loc='upper center')
 
 plt.show()
