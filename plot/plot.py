@@ -48,7 +48,7 @@ ax.bar(r4, group4_bottom, color='orange', width=bar_width, edgecolor='grey', hat
 ax.bar(r4, group4_top, color='orange', width=bar_width, edgecolor='grey', hatch='x', bottom=group4_bottom, label='Group 4 Top')
 
 # Adding labels
-ax.set_xlabel('(Round time latency, bandwidth)', fontweight='bold')
+ax.set_xlabel('(Round trip latency, bandwidth)', fontweight='bold')
 ax.set_ylabel('Online execution time (ms)', fontweight='bold')
 # ax.set_title('Grouped Stacked Bar Chart with Patterns Example')
 ax.set_xticks([r + 1.5*bar_width for r in range(n_categories)])
