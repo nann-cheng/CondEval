@@ -292,11 +292,18 @@ async def async_main(_id):
     pool.add_http_client(
         "server", addr=BENCHMARK_IPS[1 - _id], port=BENCHMARK_NETWORK_PORTS[1 - _id]
     )
+
+    if _id == 0:
+        hello = await pool.recv("server")
+        await pool.send("server", "Hi, server1")
+    else:
+        pool.asend("server", "Hi, server0")
+        hello = await pool.recv("server")
+
     # pool.add_http_client("bank", addr="127.0.0.1", port=NETWORK_BANK_PORT)
 
     all_online_time = 0
-
-    # index = BENCHMARK_TEST_INDEX
+    all_online_computation_time = 0
     for index in range(BENCHMARK_TESTS_AMOUNT):
         server = Server(_id)
 
@@ -317,16 +324,19 @@ async def async_main(_id):
         server.receiveCircuit(share)
 
         start_time = time.time()
+        computation_start_time = time.time()
         ################# Round-1 #################
         mShares = server.getFirstRoundMessage()
         # print("mShares: ",mShares)
 
+        all_online_computation_time += time.time() - computation_start_time
         if _id == 0:
-            otherShares = await pool.recv("server")
             pool.asend("server", mShares)
+            otherShares = await pool.recv("server")
         else:
             pool.asend("server", mShares)
             otherShares = await pool.recv("server")
+        computation_start_time = time.time()
 
         ipWire = ring_add(mShares[0], otherShares[0], AUTHENTICATED_MODULO)
         ssWire = ring_add(mShares[1], otherShares[1], AUTHENTICATED_MODULO)
@@ -341,12 +351,14 @@ async def async_main(_id):
         c1_share_pair = server.onFssCmp(ipWire, "fss1")
         mTruncShare = server.sub_Truncate_Fss(ipWire, ssWire, vvWire)
 
+        all_online_computation_time += time.time() - computation_start_time
         if _id == 0:
             pool.asend("server", mTruncShare)
             otherTruncShare = await pool.recv("server")
         else:
+            pool.asend("server", mTruncShare)
             otherTruncShare = await pool.recv("server")
-            await pool.send("server", mTruncShare)
+        computation_start_time = time.time()
 
         reveal4_fss2 = ring_add(
             mTruncShare, otherTruncShare, AUTHENTICATED_MODULO
@@ -365,8 +377,8 @@ async def async_main(_id):
                 pool.asend("server", m_share)
                 otherShare = await pool.recv("server")
             else:
+                pool.asend("server", m_share)
                 otherShare = await pool.recv("server")
-                await pool.send("server", m_share)
             # print("Debug-c1 is: ", ring_add(m_share, otherShare, AUTHENTICATED_MODULO))
 
         c1_share = ring_add(
@@ -395,12 +407,15 @@ async def async_main(_id):
             )
         )
 
+        all_online_computation_time += time.time() - computation_start_time
         if _id == 0:
             pool.asend("server", [c1_share, c2_share])
             otherShares = await pool.recv("server")
         else:
+            pool.asend("server", [c1_share, c2_share])
             otherShares = await pool.recv("server")
-            await pool.send("server", [c1_share, c2_share])
+        computation_start_time = time.time()
+
         c1_wire = ring_add(c1_share, otherShares[0], AUTHENTICATED_MODULO)
         c2_wire = ring_add(c2_share, otherShares[1], AUTHENTICATED_MODULO)
 
@@ -415,10 +430,12 @@ async def async_main(_id):
         output_shares = server.onMulGate(["beaver_a", "beaver_b", "beaver_c"])
         ################# Round-3 #################
 
-        all_online_time += time.time() - start_time
-
         # Mac-Verification
         partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
+
+        all_online_computation_time += time.time() - computation_start_time
+        all_online_time += time.time() - start_time
+        
         if BENCHMARK_TEST_CORRECTNESS:
             if _id == 0:
                 other_output, otherMac = await pool.recv("server")
@@ -447,11 +464,25 @@ async def async_main(_id):
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )
         ################ Return partial values and MAC codes ######
-    print("Online time cost is: ", all_online_time / BENCHMARK_TESTS_AMOUNT)
+
+    if _id == 1:
+        print(
+            "Compuation time cost is: ",
+            all_online_computation_time / BENCHMARK_TESTS_AMOUNT,
+        )
+        print(
+            "Commu. time cost is: ",
+            (all_online_time - all_online_computation_time) / BENCHMARK_TESTS_AMOUNT,
+        )
+
     if _id == 0:
-        await pool.shutdown()
+        await pool.send("server", "Let's close!")
+        other = await pool.recv("server")
     else:
-        await pool.shutdown()
+        other = await pool.recv("server")
+        await pool.send("server", "Let's close!")
+
+    await pool.shutdown()
 
 
 if __name__ == "__main__":

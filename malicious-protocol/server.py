@@ -403,8 +403,15 @@ async def async_main(_id):
     )
     # pool.add_http_client("bank", addr="127.0.0.1", port=NETWORK_BANK_PORT)
 
-    all_online_time = 0
+    if _id == 0:
+        hello = await pool.recv("server")
+        await pool.send("server", "Hi, server1")
+    else:
+        pool.asend("server", "Hi, server0")
+        hello = await pool.recv("server")
 
+    all_online_time = 0
+    all_online_computation_time = 0
     for index in range(BENCHMARK_TESTS_AMOUNT):
         server = Server(_id)
 
@@ -416,9 +423,7 @@ async def async_main(_id):
         #     secrets.randbits(ALPHA_BITS_LEN) for i in range(MAC_CHECK_RAND_AMOUNT)
         # ]
 
-        rand_vec = [
-            2 for i in range(MAC_CHECK_RAND_AMOUNT)
-        ]
+        rand_vec = [2 for i in range(MAC_CHECK_RAND_AMOUNT)]
 
         # Step-2: secure computation, Locally load prepared pickle data in setup phase
         share = None
@@ -432,13 +437,18 @@ async def async_main(_id):
 
         start_time = time.time()
         ################# Round-1 #################
+        computation_start_time = time.time()
         mShares = server.getFirstRoundMessage()
+        all_online_computation_time += time.time() - computation_start_time
+
         if _id == 0:
-            otherShares = await pool.recv("server")
             pool.asend("server", mShares)
+            otherShares = await pool.recv("server")
         else:
             pool.asend("server", mShares)
             otherShares = await pool.recv("server")
+        computation_start_time = time.time()
+        
         ipReveals = [
             ring_add(a, b, AUTHENTICATED_MODULO)
             for (a, b) in zip(mShares[0], otherShares[0])
@@ -460,12 +470,14 @@ async def async_main(_id):
         for j, c1 in enumerate(c1Arr):
             sk_Keys.append(server.getFSS2SK(j, c1))
 
+        all_online_computation_time += time.time() - computation_start_time
         if _id == 0:
             pool.asend("server", [mTruncShare, sk_Keys])
             otherTruncShare, otherSk_Keys = await pool.recv("server")
         else:
+            pool.asend("server", [mTruncShare, sk_Keys])
             otherTruncShare, otherSk_Keys = await pool.recv("server")
-            await pool.send("server", [mTruncShare, sk_Keys])
+        computation_start_time = time.time()
 
         finalReveals = [
             ring_add(a, b, AUTHENTICATED_MODULO)
@@ -480,6 +492,8 @@ async def async_main(_id):
         # Mac-Verification
         partialMac = server.getFinalMac(rand_vec, all_partial_reveals)
         ################# Round-2 #################
+
+        all_online_computation_time += time.time() - computation_start_time
         all_online_time += time.time() - start_time
 
         if BENCHMARK_TEST_CORRECTNESS:
@@ -519,11 +533,25 @@ async def async_main(_id):
         ################ Return partial values and MAC codes ######
         # await pool.send("bank", [maskEval_shares,partialMac] )
         ################ Return partial values and MAC codes ######
-    print("Online time cost is: ", all_online_time / BENCHMARK_TESTS_AMOUNT)
+    if _id == 1:
+        print(
+            "Compuation time cost is: ",
+            all_online_computation_time / BENCHMARK_TESTS_AMOUNT,
+        )
+        print(
+            "Commu. time cost is: ",
+            (all_online_time
+            - all_online_computation_time) / BENCHMARK_TESTS_AMOUNT,
+        )
+
     if _id == 0:
-        await pool.shutdown()
+        await pool.send("server", "Let's close!")
+        other = await pool.recv("server")
     else:
-        await pool.shutdown()
+        other = await pool.recv("server")
+        await pool.send("server", "Let's close!")
+
+    await pool.shutdown()
 
 
 if __name__ == "__main__":
